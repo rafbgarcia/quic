@@ -1,0 +1,53 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "cockroachdb"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  // We use MagicLink's `issuer` field as the `id`
+  id          String  @id
+  email       String  @unique
+  phoneNumber String?
+  idToken     String
+  company     Company @relation(fields: [companyId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  companyId   String  @unique
+}
+
+model Company {
+  id               String   @id @default(uuid())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  name             String
+  stripeAccountId  String   @unique
+  chargesEnabled   Boolean  @default(false)
+  detailsSubmitted Boolean  @default(false)
+  charges          Charge[]
+  Admin            Admin?
+}
+
+model Charge {
+  id                    String   @id @default(uuid())
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  stripePaymentIntentId String   @unique
+  code                  String
+  expired               Boolean  @default(false)
+  paid                  Boolean  @default(false)
+  amount                Int      @db.Int4
+  company               Company  @relation(fields: [companyId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  companyId             String
+}
+
+model Customer {
+  id               String   @id @default(uuid())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  stripeCustomerId String
+}
