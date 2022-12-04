@@ -1,3 +1,4 @@
+import { Spin } from "antd"
 import Head from "next/head"
 import AdminLayout from "../components/AdminLayout"
 import { post, useSWRWithToken } from "../lib/api"
@@ -18,14 +19,20 @@ export default function Dashboard() {
       </Head>
 
       <main>
-        <p>Nome: {data?.admin?.company?.name}</p>
-        <p>Acct: {data?.account?.id}</p>
-        <p>
-          Aguardando: {(!data?.account?.details_submitted || !data?.account?.charges_enabled)?.toString()}
-        </p>
-        <p>Ativo: {data?.account?.charges_enabled?.toString()}</p>
-        {!data?.account?.details_submitted && (
-          <button onClick={redirectToStripe}>Complete o perfil da sua empresa no Stripe</button>
+        {!data ? (
+          <Spin />
+        ) : (
+          <>
+            <p>Nome: {data?.admin?.company?.name}</p>
+            <p>Acct: {data?.account?.id}</p>
+            <p>
+              Aguardando: {(!data?.account?.details_submitted || !data?.account?.charges_enabled)?.toString()}
+            </p>
+            <p>Ativo: {data?.account?.charges_enabled?.toString()}</p>
+            {!data?.account?.details_submitted && (
+              <button onClick={redirectToStripe}>Complete o perfil da sua empresa no Stripe</button>
+            )}
+          </>
         )}
       </main>
     </AdminLayout>
