@@ -2,7 +2,7 @@ import Head from "next/head"
 import AdminLayout from "../../components/AdminLayout"
 import QRCode from "react-qr-code"
 import { Button, Spin } from "antd"
-import { useSWRWithToken } from "../../lib/api"
+import { useSWRWithToken } from "../../lib/http"
 
 const Content = ({ data }: any) => {
   const amount = Intl.NumberFormat("pt-BR", {

@@ -1,14 +1,10 @@
-import { currentAdmin } from "../../../../lib/api/admin"
-import { withPrisma } from "../../../../lib/api/withPrisma"
 import { stripeInstance } from "../../../../lib/api/stripe"
+import { NextApiRequest, NextApiResponse } from "next"
+import { withAdmin } from "../../../../lib/api/withAdmin"
 
-export default withPrisma(async function (req, res, prisma) {
-  const admin = await currentAdmin(req.headers.authorization!, prisma)
-  if (!admin) {
-    return res.status(403).json({ error: "Não autorizado" })
-  }
+const stripe = stripeInstance()
 
-  const stripe = stripeInstance()
+export default withAdmin(async function (req, res, admin) {
   const accountLink = await stripe.accountLinks.create({
     account: admin.company.stripeAccountId,
     refresh_url: "http://localhost:8000/",
@@ -16,5 +12,6 @@ export default withPrisma(async function (req, res, prisma) {
     type: "account_onboarding",
   })
 
-  res.status(200).json({ url: accountLink.url })
+  res.writeHead(302, { Location: accountLink.url })
+  res.end()
 })

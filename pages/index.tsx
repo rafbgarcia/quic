@@ -1,39 +1,33 @@
-import { Spin } from "antd"
 import Head from "next/head"
 import AdminLayout from "../components/AdminLayout"
-import { post, useSWRWithToken } from "../lib/api"
+import { getLoginSession } from "../lib/auth"
 
-export default function Dashboard() {
-  const { data } = useSWRWithToken("/api/admin")
+export async function getServerSideProps({ req, res }: any) {
+  const { admin } = (await getLoginSession(req)) || {}
 
-  const redirectToStripe = async () => {
-    const data = await post("/api/stripe/account/createLink")
-    if (data.url) window.location.href = data.url
+  if (!admin) {
+    return {
+      redirect: {
+        destination: "/login",
+        permanent: false,
+      },
+    }
   }
 
+  return {
+    props: { admin },
+  }
+}
+
+export default function Dashboard() {
   return (
     <AdminLayout>
       <Head>
         <title>Dashboard</title>
-        <meta name="viewport" content="width=device-width" />
       </Head>
 
       <main>
-        {!data ? (
-          <Spin />
-        ) : (
-          <>
-            <p>Nome: {data?.admin?.company?.name}</p>
-            <p>Acct: {data?.account?.id}</p>
-            <p>
-              Aguardando: {(!data?.account?.details_submitted || !data?.account?.charges_enabled)?.toString()}
-            </p>
-            <p>Ativo: {data?.account?.charges_enabled?.toString()}</p>
-            {!data?.account?.details_submitted && (
-              <button onClick={redirectToStripe}>Complete o perfil da sua empresa no Stripe</button>
-            )}
-          </>
-        )}
+        <a href="/api/stripe/account/createLink">Complete o perfil da sua empresa no Stripe</a>
       </main>
     </AdminLayout>
   )

@@ -12,24 +12,21 @@ datasource db {
 
 model Admin {
   // We use MagicLink's `issuer` field as the `id`
-  id          String  @id
-  email       String  @unique
-  phoneNumber String?
-  idToken     String
-  company     Company @relation(fields: [companyId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  companyId   String  @unique @db.Uuid
+  id        String  @id
+  email     String  @unique
+  didToken  String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  companyId String  @unique @db.Uuid
 }
 
 model Company {
-  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  name             String
-  stripeAccountId  String   @unique
-  chargesEnabled   Boolean  @default(false)
-  detailsSubmitted Boolean  @default(false)
-  charges          Charge[]
-  admin            Admin?
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  name            String
+  stripeAccountId String   @unique
+  charges         Charge[]
+  admin           Admin?
 }
 
 model Charge {

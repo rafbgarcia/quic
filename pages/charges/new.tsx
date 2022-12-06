@@ -1,7 +1,7 @@
 import { Button } from "antd"
 import Head from "next/head"
 import AdminLayout from "../../components/AdminLayout"
-import { post, useSWRWithToken } from "../../lib/api"
+import { post, useSWRWithToken } from "../../lib/http"
 
 export default function ChargesNew() {
   // const { data } = useSWRWithToken("/api/admin")

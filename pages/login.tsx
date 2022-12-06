@@ -1,23 +1,54 @@
-import { Spin } from "antd"
+import { Alert, Button, Spin } from "antd"
 import Head from "next/head"
-import Script from "next/script"
+import { Magic } from "magic-sdk"
+import { useState } from "react"
+import { useRouter } from "next/router"
 
 export default function Login() {
+  const router = useRouter()
+  const queryMsg = router.query.message as string | null
+  const [errorMsg, setErrorMsg] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [email, setEmail] = useState("")
+
+  const handleClick = async () => {
+    if (errorMsg) setErrorMsg("")
+    setLoading(true)
+
+    try {
+      const magic = new Magic(process.env.NEXT_PUBLIC_MAGIC_PUB_KEY!, { locale: "pt" })
+      const didToken = await magic.auth.loginWithEmailOTP({ email })
+      if (!didToken) {
+        return router.reload()
+      }
+
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${didToken}` },
+      })
+
+      if (res.status === 200) {
+        router.push("/")
+      } else {
+        throw new Error(await res.text())
+      }
+    } catch (error: any) {
+      console.error("An unexpected error happened occurred:", error)
+      setErrorMsg(error.message)
+      setLoading(false)
+    }
+  }
+
   return (
     <>
       <Head>
         <title>Login</title>
       </Head>
-
-      <Spin size="large" className="absolute left-[50%] top-[100px]" />
-      <Script
-        src="https://auth.magic.link/pnp/login"
-        data-magic-publishable-api-key={process.env.NEXT_PUBLIC_MAGIC_PUB_KEY!}
-        data-terms-of-service-uri="/path/to/your/terms-of-service"
-        data-privacy-policy-uri="/path/to/your/privacy-policy"
-        data-redirect-uri="/magic_callback"
-        data-locale="pt"
-      />
+      {queryMsg && <Alert message={queryMsg} type="info" />}
+      <input onChange={(e) => setEmail(e.target.value.trim())} />
+      <Button loading={loading} onClick={handleClick}>
+        Acessar
+      </Button>
     </>
   )
 }

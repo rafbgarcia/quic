@@ -3,7 +3,7 @@ import Head from "next/head"
 import { useStripe, useElements, Elements, PaymentElement } from "@stripe/react-stripe-js"
 import { useEffect, useState } from "react"
 import { Button, Spin } from "antd"
-import { useSWRWithToken } from "../../../lib/api"
+import { useSWRWithToken } from "../../../lib/http"
 
 const CheckoutForm = ({ charge }: any) => {
   const stripe = useStripe()

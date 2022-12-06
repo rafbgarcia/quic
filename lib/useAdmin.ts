@@ -1,18 +1,30 @@
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
+import Router from "next/router"
+import useSWR from "swr"
+import { Admin, Company } from "@prisma/client"
 
-export const useAdmin = () => {
-  let t
-  if (typeof window !== "undefined") {
-    t = window.localStorage.getItem("quicpay:user:token") || undefined
-  }
+const fetcher = (url: string) =>
+  fetch(url)
+    .then((r) => r.json())
+    .then((data) => ({ admin: data?.admin }))
 
-  const [token, setToken] = useState<string | undefined>(t)
-  const [loading, setLoading] = useState(true)
+export function useAdmin({ redirectTo, redirectIfFound }: any = {}): null | (Admin & { company: Company }) {
+  const { data, error } = useSWR("/api/currentAdmin", fetcher)
+  const admin = data?.admin
+  const finished = Boolean(data)
+  const hasAdmin = Boolean(admin)
 
   useEffect(() => {
-    setToken(window.localStorage.getItem("quicpay:user:token") || undefined)
-    setLoading(false)
-  }, [])
+    if (!redirectTo || !finished) return
+    if (
+      // If redirectTo is set, redirect if the admin was not found.
+      (redirectTo && !redirectIfFound && !hasAdmin) ||
+      // If redirectIfFound is also set, redirect if the admin was found
+      (redirectIfFound && hasAdmin)
+    ) {
+      Router.push(redirectTo)
+    }
+  }, [redirectTo, redirectIfFound, finished, hasAdmin])
 
-  return { loading, token, isLoggedIn: !!token }
+  return error ? null : admin
 }
