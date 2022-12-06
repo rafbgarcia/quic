@@ -49,5 +49,5 @@ model Customer {
   id               String   @id @default(uuid())
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
-  stripeCustomerId String
+  stripeCustomerId String   @unique
 }
