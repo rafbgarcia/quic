@@ -1,5 +1,5 @@
 import { request } from "http"
-import { withPrisma } from "../../../lib/api/prisma"
+import { withPrisma } from "../../../lib/api/withPrisma"
 import { stripeInstance, STRIPE_API_VERSION } from "../../../lib/api/stripe"
 
 export default withPrisma(async function (req, res, prisma) {
@@ -37,7 +37,6 @@ export default withPrisma(async function (req, res, prisma) {
       where: { id: req.body.customerId },
       select: { stripeCustomerId: true },
     })
-
     const ephemeralKey = await stripe.ephemeralKeys.create(
       { customer: customer.stripeCustomerId },
       { apiVersion: STRIPE_API_VERSION }

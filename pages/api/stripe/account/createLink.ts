@@ -1,5 +1,5 @@
 import { currentAdmin } from "../../../../lib/api/admin"
-import { withPrisma } from "../../../../lib/api/prisma"
+import { withPrisma } from "../../../../lib/api/withPrisma"
 import { stripeInstance } from "../../../../lib/api/stripe"
 
 export default withPrisma(async function (req, res, prisma) {

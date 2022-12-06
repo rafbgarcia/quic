@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next"
 import { Prisma, PrismaClient } from "@prisma/client"
+import { prisma } from "./db"
 
 export type PrismaClientType = PrismaClient<
   Prisma.PrismaClientOptions,
@@ -7,26 +8,15 @@ export type PrismaClientType = PrismaClient<
   Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined
 >
 
-export const withPrisma = (
-  cb: (
-    req: NextApiRequest,
-    res: NextApiResponse,
-    prisma: PrismaClient<
-      Prisma.PrismaClientOptions,
-      never,
-      Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined
-    >
-  ) => any
-) => {
-  return async (req: NextApiRequest, res: NextApiResponse) => {
-    const prisma = new PrismaClient()
+type Callback = (req: NextApiRequest, res: NextApiResponse, prisma: PrismaClientType) => any
 
+export const withPrisma = (cb: Callback) => {
+  return async function handler(req: NextApiRequest, res: NextApiResponse) {
     try {
       await cb(req, res, prisma)
     } catch (e: any) {
       console.error(">>> Handler error", e.message, e.stack)
       res.status(400).json({ quicError: e.message })
     }
-    await prisma.$disconnect()
   }
 }

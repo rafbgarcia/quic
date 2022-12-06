@@ -6,8 +6,7 @@ export const config = {
 
 import { buffer } from "node:stream/consumers"
 import Stripe from "stripe"
-// import { buffer } from "micro"
-import { PrismaClientType, withPrisma } from "../../../lib/api/prisma"
+import { PrismaClientType, withPrisma } from "../../../lib/api/withPrisma"
 import { stripeInstance } from "../../../lib/api/stripe"
 
 /**

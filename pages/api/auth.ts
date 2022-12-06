@@ -1,9 +1,8 @@
-import type { NextApiRequest, NextApiResponse } from "next"
-import { PrismaClient, Prisma } from "@prisma/client"
+import { Prisma } from "@prisma/client"
 import jwt from "jsonwebtoken"
 import { getAdmin } from "../../lib/api/admin"
 import { stripeInstance } from "../../lib/api/stripe"
-import { withPrisma } from "../../lib/api/prisma"
+import { withPrisma } from "../../lib/api/withPrisma"
 
 export default withPrisma(async function (req, res, prisma) {
   if (req.method !== "POST") {

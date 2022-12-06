@@ -1,5 +1,5 @@
 import { currentAdmin } from "../../../lib/api/admin"
-import { withPrisma } from "../../../lib/api/prisma"
+import { withPrisma } from "../../../lib/api/withPrisma"
 import { stripeInstance } from "../../../lib/api/stripe"
 
 const makeCode = () => Math.random().toString().split(".")[1].slice(0, 6)

@@ -1,4 +1,4 @@
-import { withPrisma } from "../../../lib/api/prisma"
+import { withPrisma } from "../../../lib/api/withPrisma"
 import { stripeInstance } from "../../../lib/api/stripe"
 
 export default withPrisma(async function (req, res, prisma) {
@@ -6,7 +6,6 @@ export default withPrisma(async function (req, res, prisma) {
     return res.status(404).end()
   }
 
-  // const customerId = req.body.customerId
   let customer = await prisma.customer.findUnique({
     where: { id: req.body.customerId },
     select: { id: true },
