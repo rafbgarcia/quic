@@ -1,3 +1,4 @@
+import { Spin } from "antd"
 import Head from "next/head"
 import Script from "next/script"
 
@@ -7,6 +8,8 @@ export default function Login() {
       <Head>
         <title>Login</title>
       </Head>
+
+      <Spin size="large" className="absolute left-[50%] top-[100px]" />
       <Script
         src="https://auth.magic.link/pnp/login"
         data-magic-publishable-api-key={process.env.NEXT_PUBLIC_MAGIC_PUB_KEY!}

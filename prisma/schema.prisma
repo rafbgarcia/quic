@@ -12,7 +12,7 @@ datasource db {
 
 model Admin {
   // We use MagicLink's `issuer` field as the `id`
-  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id          String  @id
   email       String  @unique
   phoneNumber String?
   idToken     String
