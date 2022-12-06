@@ -1,8 +1,5 @@
-import { stripeInstance } from "../../../../lib/api/stripe"
-import { NextApiRequest, NextApiResponse } from "next"
+import { stripe } from "../../../../lib/api/stripe"
 import { withAdmin } from "../../../../lib/api/withAdmin"
-
-const stripe = stripeInstance()
 
 export default withAdmin(async function (req, res, admin) {
   const accountLink = await stripe.accountLinks.create({
