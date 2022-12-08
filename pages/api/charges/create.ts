@@ -1,6 +1,6 @@
-import { currentAdmin } from "../../../lib/api/admin"
-import { withPrisma } from "../../../lib/api/withPrisma"
-import { stripeInstance } from "../../../lib/api/stripe"
+import { stripe } from "../../../lib/api/stripe"
+import { withAdmin } from "../../../lib/api/withAdmin"
+import { prisma } from "../../../lib/api/db"
 
 const makeCode = () => Math.random().toString().split(".")[1].slice(0, 6)
 const quicFee = (amount: number) => {
@@ -14,35 +14,37 @@ const stripeFee = (amount: number) => {
   return feeInt
 }
 
-export default withPrisma(async function (req, res, prisma) {
-  const admin = await currentAdmin(req.headers.authorization!, prisma)
-  if (!admin || req.method !== "POST") {
-    return res.status(403).json({ quicError: "Forbidden" })
+export default withAdmin(async function (req, res, admin) {
+  if (req.method !== "POST") {
+    return res.status(404).end()
   }
 
   const amount = req.body.amount!
-  const stripe = stripeInstance()
-  // const account = await stripe.accounts.retrieve(admin.company.stripeAccountId)
   const paymentIntent = await stripe.paymentIntents.create({
     amount: amount,
     currency: "brl",
     automatic_payment_methods: {
       enabled: true,
     },
-    on_behalf_of: admin.company.stripeAccountId,
+    // Não sei se devo usar isso.
+    // Na doc da Stripe tem falando que se usar, a taxa aplicada
+    // é da empresa e não da plataforma.
+    //
+    // on_behalf_of: admin.company.stripeAccountId,
     application_fee_amount: quicFee(amount) + stripeFee(amount),
     transfer_data: {
       destination: admin.company.stripeAccountId,
     },
   })
+
   const charge = await prisma.charge.create({
     data: {
-      amount,
+      amount: parseInt(amount),
       companyId: admin.company.id,
       code: makeCode(),
       stripePaymentIntentId: paymentIntent.id,
     },
   })
 
-  res.status(200).json({ code: charge.code })
+  res.redirect(`/charges/${charge.code}`)
 })

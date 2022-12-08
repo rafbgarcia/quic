@@ -9,6 +9,5 @@ export default withAdmin(async function (req, res, admin) {
     type: "account_onboarding",
   })
 
-  res.writeHead(302, { Location: accountLink.url })
-  res.end()
+  res.redirect(accountLink.url)
 })

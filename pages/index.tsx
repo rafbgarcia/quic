@@ -1,3 +1,4 @@
+import { GetServerSidePropsContext } from "next"
 import Head from "next/head"
 import Stripe from "stripe"
 import AdminLayout from "../components/AdminLayout"
@@ -5,7 +6,7 @@ import { stripe } from "../lib/api/stripe"
 import { SessionAdmin } from "../lib/api/withAdmin"
 import { getLoginSession } from "../lib/auth"
 
-export async function getServerSideProps({ req, res }: any) {
+export async function getServerSideProps({ req }: GetServerSidePropsContext) {
   const { admin } = (await getLoginSession(req)) || {}
 
   if (!admin) {
@@ -16,15 +17,16 @@ export async function getServerSideProps({ req, res }: any) {
       },
     }
   }
+
   const account = await stripe.accounts.retrieve(admin.company.stripeAccountId)
 
   return {
-    props: { admin, account },
+    props: { account },
   }
 }
 
 type Props = {
-  admin: SessionAdmin
+  // admin: SessionAdmin
   account: Stripe.Response<Stripe.Account>
 }
 
@@ -43,6 +45,9 @@ export default function Dashboard({ account }: Props) {
         {account.details_submitted ? null : (
           <a href="/api/stripe/account/createLink">Complete o perfil da sua empresa no Stripe</a>
         )}
+
+        <br />
+        <a href="/charges/new">Nova cobrança</a>
       </main>
     </AdminLayout>
   )

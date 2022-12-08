@@ -1,5 +1,5 @@
 import Iron from "@hapi/iron"
-import { NextApiRequest, NextApiResponse } from "next"
+import { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from "next"
 import { SessionAdmin } from "./api/withAdmin"
 import { MAX_AGE, setTokenCookie, getTokenCookie } from "./authCookies"
 
@@ -15,7 +15,9 @@ export async function setLoginSession(res: NextApiResponse, session: SessionType
   setTokenCookie(res, token)
 }
 
-export async function getLoginSession(req: NextApiRequest): Promise<SessionType | null> {
+export async function getLoginSession(
+  req: NextApiRequest | GetServerSidePropsContext["req"]
+): Promise<SessionType | null> {
   const token = getTokenCookie(req)
 
   if (!token) return null

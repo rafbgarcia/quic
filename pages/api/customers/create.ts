@@ -1,7 +1,8 @@
-import { withPrisma } from "../../../lib/api/withPrisma"
-import { stripeInstance } from "../../../lib/api/stripe"
+import { NextApiRequest, NextApiResponse } from "next"
+import { prisma } from "../../../lib/api/db"
+import { stripe } from "../../../lib/api/stripe"
 
-export default withPrisma(async function (req, res, prisma) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     return res.status(404).end()
   }
@@ -12,7 +13,6 @@ export default withPrisma(async function (req, res, prisma) {
   })
 
   if (!customer) {
-    const stripe = stripeInstance()
     const stripeCustomer = await stripe.customers.create()
     customer = await prisma.customer.create({
       data: { stripeCustomerId: stripeCustomer.id },
@@ -21,4 +21,4 @@ export default withPrisma(async function (req, res, prisma) {
   }
 
   res.status(200).json(customer)
-})
+}

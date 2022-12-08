@@ -1,5 +1,5 @@
 import { serialize, parse } from "cookie"
-import { NextApiRequest, NextApiResponse } from "next"
+import { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from "next"
 
 const TOKEN_NAME = "quicpay:token"
 
@@ -27,7 +27,7 @@ export function removeTokenCookie(res: NextApiResponse) {
   res.setHeader("Set-Cookie", cookie)
 }
 
-export function parseCookies(req: NextApiRequest) {
+export function parseCookies(req: NextApiRequest | GetServerSidePropsContext["req"]) {
   // For API Routes we don't need to parse the cookies.
   if (req.cookies) return req.cookies
 
@@ -36,7 +36,7 @@ export function parseCookies(req: NextApiRequest) {
   return parse(cookie || "")
 }
 
-export function getTokenCookie(req: NextApiRequest) {
+export function getTokenCookie(req: NextApiRequest | GetServerSidePropsContext["req"]) {
   const cookies = parseCookies(req)
   return cookies[TOKEN_NAME]
 }

@@ -21,8 +21,6 @@ const CheckoutForm = ({ charge }: any) => {
   }).format(charge.amount / 100)
 
   const handleSubmit = async (e: any) => {
-    console.log(">> here")
-
     e.preventDefault()
     setSubmitted(true)
 
