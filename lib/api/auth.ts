@@ -1,7 +1,7 @@
 import Iron from "@hapi/iron"
 import { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from "next"
+import { getTokenCookie, MAX_AGE, setTokenCookie } from "./authCookies"
 import { SessionAdmin } from "./withAdmin"
-import { MAX_AGE, setTokenCookie, getTokenCookie } from "./authCookies"
 
 const TOKEN_SECRET = process.env.ENCRYPTION_SECRET!
 

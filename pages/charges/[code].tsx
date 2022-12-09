@@ -1,10 +1,10 @@
-import Head from "next/head"
-import AdminLayout from "../../components/AdminLayout"
-import QRCode from "react-qr-code"
+import { Charge } from "@prisma/client"
 import { GetServerSidePropsContext } from "next"
+import Head from "next/head"
+import QRCode from "react-qr-code"
+import AdminLayout from "../../components/AdminLayout"
 import { getLoginSession } from "../../lib/api/auth"
 import { prisma } from "../../lib/api/db"
-import { Charge } from "@prisma/client"
 import { makeSerializable } from "../../lib/serializable"
 
 export async function getServerSideProps({ req, query }: GetServerSidePropsContext) {
@@ -37,7 +37,7 @@ export default function ChargesDetails({ charge }: { charge: Charge }) {
       <Head>
         <title>Cobrança {charge.code}</title>
       </Head>
-      <AdminLayout>
+      <AdminLayout pageTitle={`Detalhes da Cobrança`}>
         <p>{amount}</p>
 
         <div>

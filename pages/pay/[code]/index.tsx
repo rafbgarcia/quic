@@ -1,23 +1,22 @@
-import { loadStripe, PaymentRequest, StripeElementsOptions } from "@stripe/stripe-js"
-import Head from "next/head"
 import {
-  useStripe,
-  useElements,
   Elements,
   PaymentElement,
-  CardElement,
   PaymentRequestButtonElement,
+  useElements,
+  useStripe,
 } from "@stripe/react-stripe-js"
-import { useEffect, useState } from "react"
+import { loadStripe, PaymentRequest, StripeElementsOptions } from "@stripe/stripe-js"
 import { Button, Spin } from "antd"
 import { GetServerSidePropsContext } from "next"
+import Head from "next/head"
+import { useRouter } from "next/router"
+import { useEffect, useState } from "react"
 import { prisma } from "../../../lib/api/db"
+import { getDomain } from "../../../lib/api/req"
 import { stripe as stripeApi } from "../../../lib/api/stripe"
 import { makeSerializable } from "../../../lib/serializable"
-import { getDomain } from "../../../lib/api/req"
-import { useRouter } from "next/router"
 
-export async function getServerSideProps({ query, req, ...ctx }: GetServerSidePropsContext) {
+export async function getServerSideProps({ query, req }: GetServerSidePropsContext) {
   const code = query.code as string
   const charge = makeSerializable(
     await prisma.charge.findFirstOrThrow({ where: { code }, include: { company: true } })

@@ -1,8 +1,8 @@
-import { Alert, Button, Spin } from "antd"
-import Head from "next/head"
+import { Alert, Button } from "antd"
 import { Magic } from "magic-sdk"
-import { useState } from "react"
+import Head from "next/head"
 import { useRouter } from "next/router"
+import { useState } from "react"
 
 export default function Login() {
   const router = useRouter()

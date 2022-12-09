@@ -1,6 +1,6 @@
-import { stripe, STRIPE_API_VERSION } from "../../../lib/api/stripe"
 import { NextApiRequest, NextApiResponse } from "next"
 import { prisma } from "../../../lib/api/db"
+import { stripe, STRIPE_API_VERSION } from "../../../lib/api/stripe"
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "PATCH") {

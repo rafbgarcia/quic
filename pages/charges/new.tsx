@@ -1,11 +1,9 @@
-import { GetServerSideProps, GetServerSidePropsContext } from "next"
+import { Button, Input } from "antd"
+import { GetServerSidePropsContext } from "next"
 import Head from "next/head"
-import { useRouter } from "next/router"
 import AdminLayout from "../../components/AdminLayout"
 import { getLoginSession } from "../../lib/api/auth"
-import { post } from "../../lib/http"
 import { stripe } from "../../lib/api/stripe"
-import { Button } from "../../components/Button"
 
 export async function getServerSideProps({ req }: GetServerSidePropsContext) {
   const { admin } = (await getLoginSession(req)) || {}
@@ -40,9 +38,9 @@ export default function ChargesNew() {
       <AdminLayout pageTitle="Nova cobrança">
         <form action="/api/charges/create" method="POST">
           <div className="mb-2">
-            <input type="text" name="amount" value="10000" className="rounded-lg" />
+            <Input name="amount" value="10000" className="rounded-lg" />
           </div>
-          <Button type="submit" size="xl">
+          <Button htmlType="submit" type="primary">
             Criar cobrança
           </Button>
         </form>

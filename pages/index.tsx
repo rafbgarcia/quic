@@ -1,12 +1,11 @@
+import { Button } from "antd"
 import { GetServerSidePropsContext } from "next"
 import Head from "next/head"
+import Link from "next/link"
 import Stripe from "stripe"
 import AdminLayout from "../components/AdminLayout"
-import { stripe } from "../lib/api/stripe"
 import { getLoginSession } from "../lib/api/auth"
-import { MagnifyingGlassIcon } from "@heroicons/react/24/outline"
-import Link from "next/link"
-import { Button } from "../components/Button"
+import { stripe } from "../lib/api/stripe"
 
 export async function getServerSideProps({ req }: GetServerSidePropsContext) {
   const { admin } = (await getLoginSession(req)) || {}

@@ -1,4 +1,4 @@
-import { serialize, parse } from "cookie"
+import { parse, serialize } from "cookie"
 import { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from "next"
 
 const TOKEN_NAME = "quicpay:token"

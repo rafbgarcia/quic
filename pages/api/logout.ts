@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next"
-import { removeTokenCookie } from "../../lib/authCookies"
 import { getLoginSession } from "../../lib/api/auth"
 import { magic } from "../../lib/api/magic"
+import { removeTokenCookie } from "../../lib/api/authCookies"
 
 export default async function logout(req: NextApiRequest, res: NextApiResponse) {
   try {

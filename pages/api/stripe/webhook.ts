@@ -1,11 +1,28 @@
 export const config = { api: { bodyParser: false } }
 
+import { NextApiRequest, NextApiResponse } from "next"
 import { buffer } from "node:stream/consumers"
 import Stripe from "stripe"
+import { prisma as prismaClient } from "../../../lib/api/db"
 import { stripe } from "../../../lib/api/stripe"
-import { PrismaClientType, withPrisma } from "../../../lib/api/withPrisma"
 
-const eventHandlers: { [key: string]: (prisma: PrismaClientType, object: any) => void } = {
+export default async function (req: NextApiRequest, res: NextApiResponse) {
+  const sig = req.headers["stripe-signature"]!
+  const rawBody = await buffer(req)
+  const event: Stripe.Event = stripe.webhooks.constructEvent(rawBody, sig, process.env.ENDPOINT_SECRET!)
+
+  console.log(">>> event.type", event.type)
+  if (eventHandlers[event.type]) {
+    await eventHandlers[event.type](prismaClient, event.data.object)
+  } else {
+    console.log(`>>> Unhandled event type ${event.type}`)
+    console.log(event.object)
+  }
+
+  res.status(200).send(">>> Success")
+}
+
+const eventHandlers: { [key: string]: (prisma: typeof prismaClient, object: any) => void } = {
   "payment_intent.succeeded": async (prisma, paymentIntent: Stripe.PaymentIntent) => {
     console.log(">>> paymentIntent", paymentIntent)
 
@@ -100,19 +117,3 @@ const eventHandlers: { [key: string]: (prisma: PrismaClientType, object: any) =>
     })
   },
 }
-
-export default withPrisma(async function (req, res, prisma) {
-  const sig = req.headers["stripe-signature"]!
-  const rawBody = await buffer(req)
-  const event: Stripe.Event = stripe.webhooks.constructEvent(rawBody, sig, process.env.ENDPOINT_SECRET!)
-
-  console.log(">>> event.type", event.type)
-  if (eventHandlers[event.type]) {
-    await eventHandlers[event.type](prisma, event.data.object)
-  } else {
-    console.log(`>>> Unhandled event type ${event.type}`)
-    console.log(event.object)
-  }
-
-  res.status(200).send(">>> Success")
-})
