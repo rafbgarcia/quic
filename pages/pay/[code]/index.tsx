@@ -36,9 +36,13 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 
 export default function PayWithCode(props: Props) {
   const options: StripeElementsOptions = {
-    clientSecret: props.paymentIntent.client_secret || undefined,
+    clientSecret: props.paymentIntent.client_secret!,
     locale: "pt-BR",
   }
+  const amount = Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(props.charge.amount / 100)
 
   return (
     <>
@@ -46,6 +50,7 @@ export default function PayWithCode(props: Props) {
         <title>Pagar</title>
       </Head>
 
+      <h3>{amount}</h3>
       <Elements stripe={stripePromise} options={options}>
         <WalletElement {...props} />
         {/* <PaymentElements {...props} /> */}
