@@ -1,3 +1,4 @@
+import { amountHelperTxt, parseAmount, validateAmount } from "../../../lib/amount"
 import { prisma } from "../../../lib/api/db"
 import { stripe } from "../../../lib/api/stripe"
 import { withAdmin } from "../../../lib/api/withAdmin"
@@ -19,32 +20,41 @@ export default withAdmin(async function (req, res, admin) {
     return res.status(404).end()
   }
 
-  const amount = req.body.amount!
-  const paymentIntent = await stripe.paymentIntents.create({
-    amount: amount,
-    currency: "brl",
-    automatic_payment_methods: {
-      enabled: true,
-    },
-    // Não sei se devo usar isso.
-    // Na doc da Stripe tem falando que se usar, a taxa aplicada
-    // é da empresa e não da plataforma.
-    //
-    // on_behalf_of: admin.company.stripeAccountId,
-    application_fee_amount: quicFee(amount) + stripeFee(amount),
-    transfer_data: {
-      destination: admin.company.stripeAccountId,
-    },
-  })
+  const amount = parseAmount(req.body.amount!)
 
-  const charge = await prisma.charge.create({
-    data: {
-      amount: parseInt(amount),
-      companyId: admin.company.id,
-      code: makeCode(),
-      stripePaymentIntentId: paymentIntent.id,
-    },
-  })
+  if (!validateAmount(amount)) {
+    return res.redirect(encodeURI(`/charges/new?message=${amountHelperTxt}`))
+  }
 
-  res.redirect(`/charges/${charge.code}`)
+  try {
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount,
+      currency: "brl",
+      automatic_payment_methods: {
+        enabled: true,
+      },
+      // Não sei se devo usar isso.
+      // Na doc da Stripe tem falando que se usar, a taxa aplicada
+      // é da empresa e não da plataforma.
+      //
+      // on_behalf_of: admin.company.stripeAccountId,
+      application_fee_amount: quicFee(amount) + stripeFee(amount),
+      transfer_data: {
+        destination: admin.company.stripeAccountId,
+      },
+    })
+
+    const charge = await prisma.charge.create({
+      data: {
+        amount,
+        companyId: admin.company.id,
+        code: makeCode(),
+        stripePaymentIntentId: paymentIntent.id,
+      },
+    })
+
+    res.redirect(`/charges/${charge.code}`)
+  } catch (e: any) {
+    return res.redirect(encodeURI(`/charges/new?message=${e.message}`))
+  }
 })

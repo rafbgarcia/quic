@@ -11,12 +11,11 @@ export default async function (req: NextApiRequest, res: NextApiResponse) {
   const rawBody = await buffer(req)
   const event: Stripe.Event = stripe.webhooks.constructEvent(rawBody, sig, process.env.ENDPOINT_SECRET!)
 
-  console.log(">>> event.type", event.type)
   if (eventHandlers[event.type]) {
+    console.log(">>> event.type", event.type)
     await eventHandlers[event.type](prismaClient, event.data.object)
   } else {
-    console.log(`>>> Unhandled event type ${event.type}`)
-    console.log(event.object)
+    console.log(`>>> Unhandled event type ${event.type}`, event.object)
   }
 
   res.status(200).send(">>> Success")

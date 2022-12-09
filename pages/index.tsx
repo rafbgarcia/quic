@@ -40,18 +40,14 @@ export default function Dashboard({ account }: Props) {
       <AdminLayout pageTitle="Dashboard">
         <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-3 lg:gap-6">
           <div className="grid grid-cols-1 gap-4 lg:col-span-2">
-            <section>
-              <div className="rounded-lg bg-white shadow min-h-[70vh]">
-                <div className="p-6">
-                  {/* <h3 className="text-lg">{account.business_profile?.name}</h3> */}
+            <section className="rounded-lg bg-white shadow min-h-[70vh] p-6">
+              {/* <h3 className="text-lg">{account.business_profile?.name}</h3> */}
 
-                  {account.details_submitted ? null : (
-                    <Link href="/api/stripe/account/createLink">
-                      <Button>Complete o perfil da sua empresa no Stripe</Button>
-                    </Link>
-                  )}
-                </div>
-              </div>
+              {account.details_submitted ? null : (
+                <Link href="/api/stripe/account/createLink">
+                  <Button>Complete o perfil da sua empresa no Stripe</Button>
+                </Link>
+              )}
             </section>
           </div>
 

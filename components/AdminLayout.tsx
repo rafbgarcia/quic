@@ -1,5 +1,6 @@
 import { Disclosure, Menu, Transition } from "@headlessui/react"
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline"
+import { Alert } from "antd"
 import Link from "next/link"
 import { useRouter } from "next/router"
 import { Fragment } from "react"
@@ -64,7 +65,10 @@ export default function AdminLayout({ children, pageTitle }: { children: any; pa
                       {/* Profile dropdown */}
                       <Menu as="div" className="relative ml-3">
                         <div>
-                          <Menu.Button className="flex max-w-xs items-center rounded-full bg-indigo-600 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-indigo-600">
+                          <Menu.Button
+                            type="button"
+                            className="flex max-w-xs items-center rounded-full bg-indigo-600 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-indigo-600"
+                          >
                             <span className="sr-only">Open user menu</span>
                             <img className="h-8 w-8 rounded-full" src={user.imageUrl} alt="" />
                           </Menu.Button>
@@ -165,7 +169,12 @@ export default function AdminLayout({ children, pageTitle }: { children: any; pa
             <h1 className="text-lg font-semibold leading-6 text-gray-900">{pageTitle}</h1>
           </div>
         </header>
-        <main className="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">{children}</main>
+        <main className="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
+          {router.query.message && (
+            <Alert className="mb-6" showIcon message={router.query.message} type="warning" />
+          )}
+          {children}
+        </main>
       </div>
     </>
   )

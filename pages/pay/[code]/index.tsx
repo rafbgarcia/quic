@@ -11,6 +11,7 @@ import { GetServerSidePropsContext } from "next"
 import Head from "next/head"
 import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
+import { intlCurrency } from "../../../lib/amount"
 import { prisma } from "../../../lib/api/db"
 import { getDomain } from "../../../lib/api/req"
 import { stripe as stripeApi } from "../../../lib/api/stripe"
@@ -38,10 +39,7 @@ export default function PayWithCode(props: Props) {
     clientSecret: props.paymentIntent.client_secret!,
     locale: "pt-BR",
   }
-  const amount = Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  }).format(props.charge.amount / 100)
+  const amount = intlCurrency(props.charge.amount)
 
   return (
     <>
@@ -68,10 +66,7 @@ const PaymentElements = (props: Props) => {
     return <Spin size="large" />
   }
 
-  const amount = Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  }).format(props.charge.amount / 100)
+  const amount = intlCurrency(props.charge.amount)
 
   const handleSubmit = async (e: any) => {
     e.preventDefault()
