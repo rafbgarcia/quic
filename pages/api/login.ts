@@ -3,7 +3,7 @@ import { NextApiRequest, NextApiResponse } from "next"
 import { prisma } from "../../lib/api/db"
 import { magic } from "../../lib/api/magic"
 import { stripe } from "../../lib/api/stripe"
-import { setLoginSession } from "../../lib/auth"
+import { setLoginSession } from "../../lib/api/auth"
 
 export default async function (req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") return res.status(405).end()

@@ -3,7 +3,7 @@ import { Button, Input } from "antd"
 import Head from "next/head"
 import { useRouter } from "next/router"
 import AdminLayout from "../../components/AdminLayout"
-import { getLoginSession } from "../../lib/auth"
+import { getLoginSession } from "../../lib/api/auth"
 import { post } from "../../lib/http"
 import { stripe } from "../../lib/api/stripe"
 

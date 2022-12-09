@@ -1,3 +1,3 @@
-export function makeSerializable(obj: any) {
-  return JSON.parse(JSON.stringify(obj))
+export function makeSerializable<T extends any>(o: T): T {
+  return JSON.parse(JSON.stringify(o))
 }

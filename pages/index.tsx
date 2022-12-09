@@ -4,7 +4,7 @@ import Stripe from "stripe"
 import AdminLayout from "../components/AdminLayout"
 import { stripe } from "../lib/api/stripe"
 import { SessionAdmin } from "../lib/api/withAdmin"
-import { getLoginSession } from "../lib/auth"
+import { getLoginSession } from "../lib/api/auth"
 
 export async function getServerSideProps({ req }: GetServerSidePropsContext) {
   const { admin } = (await getLoginSession(req)) || {}

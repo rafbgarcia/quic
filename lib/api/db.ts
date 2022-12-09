@@ -11,12 +11,12 @@ type PrismaType = ReturnType<typeof initPrisma>
 declare global {
   // allow global `var` declarations
   // eslint-disable-next-line no-var
-  var prisma: PrismaType | undefined
+  var prismaInstance: PrismaType | undefined
 }
 
-export const prisma = global.prisma || initPrisma()
+export const prisma = global.prismaInstance || initPrisma()
 
-if (process.env.NODE_ENV !== "production") global.prisma = prisma
+if (process.env.NODE_ENV !== "production") global.prismaInstance = prisma
 
 function initPrisma() {
   const prisma = new PrismaClient({

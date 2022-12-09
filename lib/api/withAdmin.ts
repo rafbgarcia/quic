@@ -1,6 +1,6 @@
 import { Admin, Company } from "@prisma/client"
 import { NextApiRequest, NextApiResponse } from "next"
-import { getLoginSession } from "../auth"
+import { getLoginSession } from "./auth"
 
 export type SessionAdmin = Admin & { company: Company }
 type Callback = (req: NextApiRequest, res: NextApiResponse, admin: SessionAdmin) => any
