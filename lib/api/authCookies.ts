@@ -2,7 +2,7 @@ import { parse, serialize } from "cookie"
 import { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from "next"
 import { NextRequest } from "next/server"
 
-const COOKIE_KEY = "quicpay:token"
+const COOKIE_KEY = "quic:token"
 
 export const MAX_AGE = 60 * 60 * 24 * 7 // 7 days
 

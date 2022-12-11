@@ -11,7 +11,6 @@ export default ServerlessFunctionHandler({
     if (!didToken) return res.redirect("/login")
 
     const meta = await magic.users.getMetadataByToken(didToken)
-    console.log(meta)
     let admin = await prisma.admin.findUnique({ where: { id: meta.issuer! } })
     if (!admin) {
       admin = await prisma.admin.create({

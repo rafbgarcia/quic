@@ -7,9 +7,11 @@ import Head from "next/head"
 import Link from "next/link"
 import { useState } from "react"
 import Stripe from "stripe"
+import AdminLayout from "../../components/AdminLayout"
 import { getLoginSession } from "../../lib/api/auth"
 import { selectedBusiness } from "../../lib/api/business"
 import { makeSerializable } from "../../lib/serializable"
+import { hasMissingRequirements } from "../../lib/stripeAccount"
 
 type Props = Awaited<ReturnType<typeof getServerSideProps>>["props"]
 
@@ -41,28 +43,37 @@ export default function Onboarding({ business }: Props) {
         <title>Onboarding parceiro</title>
       </Head>
 
-      <div className="max-w-5xl mx-auto">
-        <div className="text-center mt-6 mb-14">
-          <h1 className="text-3xl mb-3 ">Cadastre seu negócio</h1>
-          <p className="mb-2">Você pode usar o Quic tanto como empresa quanto como profissional autonomo.</p>
-          <p>Siga os passos abaixo para começar.</p>
-        </div>
+      <AdminLayout disableMenu pageTitle="Cadastre seu negócio">
         <div className="mb-6">
           <Steps currentStep={currentStep} />
         </div>
-        <Card bordered={false}>
-          <Step step={currentStep} business={business} />
-        </Card>
-      </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card bordered={false}>
+            <Step step={currentStep} business={business} />
+          </Card>
+          <Alert
+            showIcon
+            description={
+              <>
+                <p className="mb-2">
+                  Por motivos de segurança, utilizamos a Stripe
+                  <Popover content={StripeInfo} title="Sobre a Stripe">
+                    <InfoCircleOutlined className="ml-1 mr-2 relative -top-1 text-blue-700" />
+                  </Popover>
+                  para validar os dados do seu negócio e processar pagamentos.
+                </p>
+                <p className="mb-2">
+                  Você pode usar o Quic tanto como empresa quanto como profissional autonomo.
+                </p>
+              </>
+            }
+            message="Saiba mais"
+          />
+        </div>
+        <div className="mb-32" />
+      </AdminLayout>
     </>
   )
-}
-function hasMissingRequirements(stripeMeta: Stripe.Account) {
-  try {
-    return stripeMeta.requirements!.currently_due!.length > 0
-  } catch {
-    return false
-  }
 }
 
 function Step({ step, business }: { step: typeof steps[0]; business: Props["business"] }) {
@@ -82,28 +93,22 @@ function Step({ step, business }: { step: typeof steps[0]; business: Props["busi
             action={
               <Link href="/api/admin/stripe/onboarding">
                 <Button onClick={didClick} loading={clicked} type="primary" className="mb-4">
-                  Continuar cadastro no Stripe
+                  Continuar cadastro na Stripe
                 </Button>
               </Link>
             }
           />
         )}
         <h3 className="text-xl mb-2">Faça seu cadastro</h3>
-        <p className="mb-2">
-          Por motivos de segurança, utilizamos o Stripe
-          <Popover content={StripeInfo} title="Sobre o Stripe">
-            <InfoCircleOutlined className="ml-1 mr-2 relative -top-1 text-blue-700" />
-          </Popover>
-          para validar os dados do seu negócio.
-        </p>
+
         <p className="mb-2">Seu progresso é salvo a cada etapa e você pode voltar de onde parou.</p>
         <p className="mb-4">Ao finalizar, você será redirecionado de volta para cá.</p>
 
         <Link href="/api/admin/stripe/onboarding">
           <Button onClick={didClick} loading={clicked} type="primary">
             {hasMissingRequirements(business?.stripeMeta as any)
-              ? "Continuar cadastro no Stripe"
-              : "Redirecionar para o Stripe"}
+              ? "Continuar cadastro na Stripe"
+              : "Iniciar cadastro na Stripe"}
           </Button>
         </Link>
       </>
@@ -151,7 +156,7 @@ function Step({ step, business }: { step: typeof steps[0]; business: Props["busi
 function Steps({ currentStep }: { currentStep: typeof steps[0] }) {
   return (
     <div className="lg:border-t lg:border-b lg:border-gray-200">
-      <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Progress">
+      <nav className="" aria-label="Progress">
         <ol
           role="list"
           className="overflow-hidden rounded-md lg:flex lg:rounded-none lg:border-l lg:border-r lg:border-gray-200"
@@ -267,21 +272,18 @@ function Steps({ currentStep }: { currentStep: typeof steps[0] }) {
 const steps = [
   {
     id: 1,
-    name: "Faça seu cadastro",
+    name: "Cadastro",
     description: "Informe os dados do seu negócio",
-    status: "current",
   },
   {
     id: 2,
-    name: "Aguarde a validação",
-    description: "Vamos validar seus dados",
-    status: "upcoming",
+    name: "Validação dos dados",
+    description: "Aguarde a confirmação de seus dados",
   },
   {
     id: 3,
     name: "Pronto!",
     description: "Comece a usar o Quic",
-    status: "upcoming",
   },
 ]
 

@@ -15,7 +15,6 @@ export default ServerlessFunctionHandler({
         type: "standard",
         country: "BR",
         default_currency: "BRL",
-        email: admin.email!,
       })
       business = await prisma.business.create({
         data: { id: account.id, adminId: admin.id },
