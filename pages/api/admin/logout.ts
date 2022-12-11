@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next"
-import { getLoginSession } from "../../lib/api/auth"
-import { magic } from "../../lib/api/magic"
-import { removeTokenCookie } from "../../lib/api/authCookies"
+import { getLoginSession } from "../../../lib/api/auth"
+import { removeTokenCookie } from "../../../lib/api/authCookies"
+import { magic } from "../../../lib/api/magic"
 
 export default async function logout(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -11,7 +11,7 @@ export default async function logout(req: NextApiRequest, res: NextApiResponse) 
       await magic.users.logoutByIssuer(session.admin.id)
       removeTokenCookie(res)
     }
-    res.writeHead(302, { Location: "/" }).end()
+    res.writeHead(302, { Location: "/admin" }).end()
   } catch (error: any) {
     console.error(">>> error", error)
     res.end(error.message)

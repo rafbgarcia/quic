@@ -13,37 +13,62 @@ datasource db {
 
 model Admin {
   // We use MagicLink's `issuer` field as the `id`
-  id        String  @id
-  email     String  @unique
-  didToken  String
-  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  companyId String  @unique @db.Uuid
+  // @see https://magic.link/docs/auth/api-reference/client-side-sdks/web#returns-6
+  id         String     @id @db.String(150)
+  email      String     @db.String(150)
+  businesses Business[]
 }
 
-model Company {
-  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  name            String
-  stripeAccountId String   @unique
-  charges         Charge[]
-  admin           Admin?
+model Business {
+  // `id` is the Stripe's Account ID
+  id         String    @unique @db.String(255)
+  selectedAt DateTime  @default(now())
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  requests   Request[]
+  Admin      Admin     @relation(fields: [adminId], references: [id])
+  adminId    String
+  stripeMeta Json?
+
+  @@id([adminId, selectedAt, id])
 }
 
-model Charge {
-  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-  stripePaymentIntentId String   @unique
-  paid                  Boolean  @default(false)
-  amount                Int      @db.Int4
-  company               Company  @relation(fields: [companyId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  companyId             String   @db.Uuid
+enum RequestInfo {
+  idDocument
+  fullName
+  shippingAddress
+  email
+  phoneNumber
+}
+
+model Request {
+  id                    String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt             DateTime      @default(now())
+  requestedInfo         RequestInfo[]
+  stripePaymentIntentId String?       @db.String(255)
+  fulfilled             Boolean       @default(false)
+  amount                Int?          @db.Int4
+  business              Business      @relation(fields: [businessId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  businessId            String        @db.String(255)
+  requestCode           RequestCode?
+}
+
+model RequestCode {
+  // `id` is the code customers use to access the request
+  // It is variable size for different use cases.
+  // For example:
+  // . Non-profits can have a fixed code to receive donations.
+  // . Pharmacies can create ad hoc codes to receive payments with customer information such as shipping address.
+  id        String    @id @db.String(12)
+  createdAt DateTime  @default(now())
+  expiresAt DateTime?
+  request   Request   @relation(fields: [requestId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  requestId String    @unique @db.Uuid
 }
 
 model Customer {
-  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  stripeCustomerId String   @unique
+  // `id` is the Stripe's Customer ID
+  id        String   @id @db.String(255)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

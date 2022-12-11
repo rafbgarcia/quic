@@ -1,9 +1,9 @@
 import { Button, Card, Form, InputNumber } from "antd"
 import { GetServerSidePropsContext } from "next"
 import Head from "next/head"
-import AdminLayout from "../../components/AdminLayout"
-import { amountHelperTxt } from "../../lib/amount"
-import { getLoginSession } from "../../lib/api/auth"
+import AdminLayout from "../../../components/AdminLayout"
+import { amountHelperTxt } from "../../../lib/amount"
+import { getLoginSession } from "../../../lib/api/auth"
 
 export async function getServerSideProps({ req }: GetServerSidePropsContext) {
   const { admin } = (await getLoginSession(req)) || {}
@@ -53,7 +53,6 @@ export default function ChargesNew() {
                   autoFocus
                   required
                   name="amount"
-                  stringMode
                   maxLength={9}
                   min={1}
                   placeholder="39,90"

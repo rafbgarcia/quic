@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+
+/**
+ * AntDesign overrides
+ */
+
+.anticon {
+  line-height: 0;
+}
+
 /**
  * Tailwind custom preflight to avoid conflict with antdesign
  *

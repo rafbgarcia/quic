@@ -1,11 +1,12 @@
 import Iron from "@hapi/iron"
+import { Admin } from "@prisma/client"
 import { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from "next"
 import { getTokenCookie, MAX_AGE, setTokenCookie } from "./authCookies"
-import { SessionAdmin } from "./withAdmin"
+
+type SessionType = { admin: Admin }
 
 const TOKEN_SECRET = process.env.ENCRYPTION_SECRET!
 
-type SessionType = { admin: SessionAdmin }
 export async function setLoginSession(res: NextApiResponse, session: SessionType) {
   const createdAt = Date.now()
   // Create a session object with a max age that we can validate later

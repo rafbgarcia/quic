@@ -4,11 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 8000",
+    "dev:debug": "NODE_OPTIONS='--inspect' next dev -p 8000",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
+    "@ant-design/icons": "^4.8.0",
     "@hapi/iron": "^7.0.0",
     "@headlessui/react": "^1.7.5",
     "@heroicons/react": "^2.0.13",

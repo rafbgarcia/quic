@@ -1,47 +1,43 @@
-import { Prisma } from "@prisma/client"
-import { NextApiRequest, NextApiResponse } from "next"
+import { Admin, Prisma } from "@prisma/client"
 import { setLoginSession } from "../../lib/api/auth"
 import { prisma } from "../../lib/api/db"
 import { magic } from "../../lib/api/magic"
-import { stripe } from "../../lib/api/stripe"
+import { ServerlessFunctionHandler } from "../../lib/api/serverlessHandler"
 
-export default async function (req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "POST") return res.status(405).end()
-  if (!req.headers.authorization) throw "Authorization header is required"
+export default ServerlessFunctionHandler({
+  allowedMethods: ["GET"],
+  handler: async function (req, res) {
+    const didToken = req.query.didToken as string | undefined
+    if (!didToken) return res.end("Authorization header is required")
 
-  const didToken = magic.utils.parseAuthorizationHeader(req.headers.authorization)
-  const meta = await magic.users.getMetadataByToken(didToken)
+    const meta = await magic.users.getMetadataByToken(didToken)
+    let admin = await prisma.admin.findUnique({ where: { id: meta.issuer! } })
+    if (!admin) {
+      admin = await prisma.admin.create({
+        data: Prisma.validator<Prisma.AdminCreateInput>()({
+          id: meta.issuer!,
+          email: meta.email!,
+        }),
+      })
+    }
 
-  let admin = await prisma.admin.findUnique({
-    where: { id: meta.issuer! },
-    include: { company: true },
-  })
+    await setLoginSession(res, { admin })
 
-  if (!admin) {
-    const account = await stripe.accounts.create({
-      type: "standard",
-      country: "BR",
-      default_currency: "BRL",
-      email: meta.email!,
-    })
-    const validator = Prisma.validator<Prisma.AdminCreateInput>()({
-      id: meta.issuer!,
-      email: meta.email!,
-      didToken: didToken,
-      company: {
-        create: {
-          name: "Minha Empresa",
-          stripeAccountId: account.id,
-        },
-      },
-    })
+    if (await needsOnboarding(admin)) {
+      return res.status(200).redirect("/admin/onboarding")
+    }
 
-    admin = await prisma.admin.create({
-      data: validator,
-      include: { company: true },
-    })
-  }
+    const url = new URL(req.headers.referer!)
 
-  await setLoginSession(res, { admin })
-  res.status(200).end()
+    if (url.pathname === "/login") {
+      res.status(200).redirect("/admin")
+    } else {
+      res.status(200).redirect(url.toString())
+    }
+  },
+})
+
+async function needsOnboarding(admin: Admin) {
+  const businessesCount = await prisma.business.count({ where: { adminId: admin.id } })
+  return businessesCount === 0
 }
