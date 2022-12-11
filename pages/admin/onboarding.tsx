@@ -1,6 +1,6 @@
 import { InfoCircleOutlined } from "@ant-design/icons"
 import { CheckIcon } from "@heroicons/react/24/solid"
-import { Button, Card, Popover } from "antd"
+import { Alert, Button, Card, Popover } from "antd"
 import classnames from "classnames"
 import { GetServerSidePropsContext } from "next"
 import Head from "next/head"
@@ -57,6 +57,13 @@ export default function Onboarding({ business }: Props) {
     </>
   )
 }
+function hasMissingRequirements(stripeMeta: Stripe.Account) {
+  try {
+    return stripeMeta.requirements!.currently_due!.length > 0
+  } catch {
+    return false
+  }
+}
 
 function Step({ step, business }: { step: typeof steps[0]; business: Props["business"] }) {
   const [clicked, setClicked] = useState(false)
@@ -65,6 +72,22 @@ function Step({ step, business }: { step: typeof steps[0]; business: Props["busi
   if (step.id === 1) {
     return (
       <>
+        {hasMissingRequirements(business?.stripeMeta as any) && (
+          <Alert
+            className="mb-4"
+            showIcon
+            type="info"
+            message="Seu cadastro está incompleto"
+            description="Seu progresso está salvo. Clique no botão ao lado para continuar de onde parou."
+            action={
+              <Link href="/api/admin/stripe/onboarding">
+                <Button onClick={didClick} loading={clicked} type="primary" className="mb-4">
+                  Continuar cadastro no Stripe
+                </Button>
+              </Link>
+            }
+          />
+        )}
         <h3 className="text-xl mb-2">Faça seu cadastro</h3>
         <p className="mb-2">
           Por motivos de segurança, utilizamos o Stripe
@@ -73,18 +96,45 @@ function Step({ step, business }: { step: typeof steps[0]; business: Props["busi
           </Popover>
           para validar os dados do seu negócio.
         </p>
-        <p className="mb-4">Clique no botão abaixo para continuar.</p>
+        <p className="mb-2">Seu progresso é salvo a cada etapa e você pode voltar de onde parou.</p>
+        <p className="mb-4">Ao finalizar, você será redirecionado de volta para cá.</p>
+
         <Link href="/api/admin/stripe/onboarding">
-          <Button onClick={didClick} loading={clicked} type="primary" className="mb-4">
-            Ir ao Stripe
+          <Button onClick={didClick} loading={clicked} type="primary">
+            {hasMissingRequirements(business?.stripeMeta as any)
+              ? "Continuar cadastro no Stripe"
+              : "Redirecionar para o Stripe"}
           </Button>
         </Link>
-        <p>Seu progresso é salvo automaticamente. Ao finalizar, você será redirecionado de volta para cá.</p>
       </>
     )
   }
   if (step.id === 2) {
-    return <></>
+    if (hasMissingRequirements(business?.stripeMeta as any)) {
+      return (
+        <>
+          <h3 className="text-xl mb-2">Ação necessária</h3>
+          <p className="mb-2">
+            Você tem pendencias no cadastro com a Stripe. Clique no botão abaixo para visualizar.
+          </p>
+          <Link href="/api/admin/stripe/onboarding">
+            <Button onClick={didClick} loading={clicked} type="primary">
+              Ver pendencias
+            </Button>
+          </Link>
+        </>
+      )
+    }
+    return (
+      <>
+        <h3 className="text-xl mb-2">Cadastro completo</h3>
+        <p className="mb-2">
+          Agora é só aguardar a Stripe validar suas informações. Este processo pode levar até 3 dias úteis.
+        </p>
+        <p className="mb-2">Fique tranquilo, avisaremos por E-mail ou SMS sobre qualquer atualização.</p>
+        <p className="mb-2">Você já pode fechar esta aba.</p>
+      </>
+    )
   }
 
   return (
