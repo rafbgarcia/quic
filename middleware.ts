@@ -26,6 +26,10 @@ export const middleware: NextMiddleware = async function (req) {
   } else {
     const url = req.nextUrl
     url.pathname = "/login"
-    return NextResponse.rewrite(url)
+    if (url.pathname.includes("logout")) {
+      return NextResponse.redirect(url)
+    } else {
+      return NextResponse.rewrite(url)
+    }
   }
 }

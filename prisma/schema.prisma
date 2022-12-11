@@ -15,7 +15,7 @@ model Admin {
   // We use MagicLink's `issuer` field as the `id`
   // @see https://magic.link/docs/auth/api-reference/client-side-sdks/web#returns-6
   id         String     @id @db.String(150)
-  email      String     @db.String(150)
+  magicMeta  Json
   businesses Business[]
 }
 

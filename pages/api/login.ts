@@ -6,17 +6,18 @@ import { ServerlessFunctionHandler } from "../../lib/api/serverlessHandler"
 
 export default ServerlessFunctionHandler({
   allowedMethods: ["GET"],
-  handler: async function (req, res) {
+  handler: async function login(req, res) {
     const didToken = req.query.didToken as string | undefined
-    if (!didToken) return res.end("Authorization header is required")
+    if (!didToken) return res.redirect("/login")
 
     const meta = await magic.users.getMetadataByToken(didToken)
+    console.log(meta)
     let admin = await prisma.admin.findUnique({ where: { id: meta.issuer! } })
     if (!admin) {
       admin = await prisma.admin.create({
         data: Prisma.validator<Prisma.AdminCreateInput>()({
           id: meta.issuer!,
-          email: meta.email!,
+          magicMeta: meta,
         }),
       })
     }
