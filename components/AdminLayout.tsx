@@ -1,7 +1,8 @@
 import { Dialog, Menu, Transition } from "@headlessui/react"
-import { ChevronUpDownIcon, DeviceTabletIcon } from "@heroicons/react/20/solid"
+import { ChevronUpDownIcon, DeviceTabletIcon, PlusIcon } from "@heroicons/react/20/solid"
 import { Bars3Icon, CalendarIcon, CogIcon, HomeIcon, XMarkIcon } from "@heroicons/react/24/outline"
 import classNames from "classnames"
+import Link from "next/link"
 import { Fragment, useState } from "react"
 import { Avatar } from "./Avatar"
 import { Logo } from "./Logo"
@@ -169,6 +170,7 @@ function Sidebar() {
                 leaveTo="transform opacity-0 scale-95"
               >
                 <Menu.Items className="absolute right-0 left-0 z-10 mx-3 mt-1 origin-top divide-y divide-gray-200 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                  <div className="text-sm italic text-gray-500 px-4 py-2">Sem outros negócios</div>
                   <div className="py-1">
                     <Menu.Item>
                       {({ active }) => (
@@ -176,36 +178,11 @@ function Sidebar() {
                           href="#"
                           className={classNames(
                             active ? "bg-gray-100 text-gray-900" : "text-gray-700",
-                            "block px-4 py-2 text-sm"
+                            "px-4 py-2 text-sm flex items-center"
                           )}
                         >
-                          View profile
-                        </a>
-                      )}
-                    </Menu.Item>
-                    <Menu.Item>
-                      {({ active }) => (
-                        <a
-                          href="#"
-                          className={classNames(
-                            active ? "bg-gray-100 text-gray-900" : "text-gray-700",
-                            "block px-4 py-2 text-sm"
-                          )}
-                        >
-                          Settings
-                        </a>
-                      )}
-                    </Menu.Item>
-                    <Menu.Item>
-                      {({ active }) => (
-                        <a
-                          href="#"
-                          className={classNames(
-                            active ? "bg-gray-100 text-gray-900" : "text-gray-700",
-                            "block px-4 py-2 text-sm"
-                          )}
-                        >
-                          Notifications
+                          <PlusIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
+                          Cadastrar Negócio
                         </a>
                       )}
                     </Menu.Item>
@@ -262,17 +239,21 @@ function CurrentAdmin() {
   return (
     <>
       <div className="flex flex-shrink-0 border-t border-gray-200 p-4">
-        <a href="#" className="group block flex-shrink-0">
-          <div className="flex items-center">
-            <div>
-              <Avatar />
-            </div>
-            <div className="ml-3">
-              <p className="text-base font-medium text-gray-700 group-hover:text-gray-900">Administrador</p>
-              <p className="text-sm font-medium text-gray-500 group-hover:text-gray-700">Editar perfil</p>
-            </div>
+        <div className="flex items-center">
+          <div>
+            <Avatar />
           </div>
-        </a>
+          <div className="ml-3">
+            <p className="text-base font-medium text-gray-700">Administrador</p>
+            <Link href="#" className="text-sm font-medium text-gray-500 hover:underline">
+              Editar perfil
+            </Link>
+            <span className="text-gray-500 mx-2">•</span>
+            <Link href="/api/logout" className="text-sm font-medium text-gray-500 hover:underline">
+              Sair
+            </Link>
+          </div>
+        </div>
       </div>
     </>
   )
