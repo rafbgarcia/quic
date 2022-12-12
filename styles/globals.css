@@ -76,6 +76,7 @@ video {
 
 button {
   cursor: pointer;
+  background-color: transparent;
 }
 
 a {

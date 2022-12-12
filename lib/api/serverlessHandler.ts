@@ -16,7 +16,9 @@ export const ServerlessFunctionHandler = function ({
       }
       return await handler(req, res)
     } catch (e: any) {
-      const { pathname } = new URL(req.headers.referer!)
+      console.error(">>> Handler Error", e)
+
+      const pathname = req.headers.referer ? new URL(req.headers.referer).pathname : "/"
       return res.redirect(encodeURI(`${pathname}?message=${e.message || e}`))
     }
   }
