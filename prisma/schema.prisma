@@ -2,73 +2,81 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["clientExtensions"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "cockroachdb"
-  url      = env("DATABASE_URL")
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
 }
 
 model Admin {
   // We use MagicLink's `issuer` field as the `id`
   // @see https://magic.link/docs/auth/api-reference/client-side-sdks/web#returns-6
-  id         String     @id @db.String(150)
+  id String @id @db.VarChar(70)
+
   magicMeta  Json
   businesses Business[]
 }
 
 model Business {
-  // `id` is the Stripe's Account ID
-  id         String    @unique @db.String(255)
+  // @param id Stripe's Account ID
+  id String @id @db.VarChar(50)
+
   selectedAt DateTime  @default(now())
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
   requests   Request[]
-  Admin      Admin     @relation(fields: [adminId], references: [id])
+  admin      Admin     @relation(fields: [adminId], references: [id])
   adminId    String
   stripeMeta Json?
 
-  @@id([adminId, selectedAt, id])
-}
-
-enum RequestInfo {
-  idDocument
-  fullName
-  shippingAddress
-  email
-  phoneNumber
+  @@index([adminId])
 }
 
 model Request {
-  id                    String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  createdAt             DateTime      @default(now())
-  requestedInfo         RequestInfo[]
-  stripePaymentIntentId String?       @db.String(255)
-  fulfilled             Boolean       @default(false)
-  amount                Int?          @db.Int4
-  business              Business      @relation(fields: [businessId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  businessId            String        @db.String(255)
+  id                    String       @id @default(cuid()) @db.VarChar(25)
+  businessId            String       @db.VarChar(50)
+  business              Business     @relation(fields: [businessId], references: [id])
   requestCode           RequestCode?
+  createdAt             DateTime     @default(now())
+  fulfilled             Boolean      @default(false)
+  stripePaymentIntentId String?      @db.VarChar(50)
+  amount                Int?         @db.UnsignedMediumInt
+
+  // @param requestedInfo array of requested data
+  // @see lib/enums.ts
+  requestedInfo Json
+
+  // @param referenceText Additional information for the business
+  // to identify this request, such as customer name or phone number.
+  referenceText String? @db.VarChar(255)
+
+  // @param requestCodeRef keep a reference of the code used to access this request.
+  // RequestCode's are deleted when expired, hence we keep this reference.
+  requestCodeRef String @db.VarChar(12)
+
+  @@index([businessId])
 }
 
 model RequestCode {
-  // `id` is the code customers use to access the request
+  // @param `id` is the code customers input to access the request.
   // It is variable size for different use cases.
   // For example:
   // . Non-profits can have a fixed code to receive donations.
   // . Pharmacies can create ad hoc codes to receive payments with customer information such as shipping address.
-  id        String    @id @db.String(12)
-  createdAt DateTime  @default(now())
-  expiresAt DateTime?
-  request   Request   @relation(fields: [requestId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  requestId String    @unique @db.Uuid
+  id String @id @db.VarChar(12)
+
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  request   Request  @relation(fields: [requestId], references: [id])
+  requestId String   @unique
 }
 
 model Customer {
   // `id` is the Stripe's Customer ID
-  id        String   @id @db.String(255)
+  id        String   @id @db.VarChar(255)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

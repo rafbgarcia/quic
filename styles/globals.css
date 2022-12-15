@@ -7,8 +7,9 @@
  * AntDesign overrides
  */
 
-.anticon {
-  line-height: 0;
+.ant-btn {
+  display: inline-flex;
+  align-items: center;
 }
 
 /**

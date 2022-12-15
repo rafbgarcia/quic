@@ -1,9 +1,11 @@
 import { Dialog, Menu, Transition } from "@headlessui/react"
 import { ChevronUpDownIcon, DeviceTabletIcon, PlusIcon } from "@heroicons/react/20/solid"
 import { Bars3Icon, CalendarIcon, CogIcon, HomeIcon, XMarkIcon } from "@heroicons/react/24/outline"
+import { message } from "antd"
 import classNames from "classnames"
 import Link from "next/link"
-import { Fragment, useState } from "react"
+import { useRouter } from "next/router"
+import { Fragment, useEffect, useState } from "react"
 import { Avatar } from "./Avatar"
 import { Logo } from "./Logo"
 
@@ -21,9 +23,17 @@ const secondaryNavigation = [{ name: "Configurações", href: "#", icon: CogIcon
 
 export default function AdminLayout({ children }: any) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const router = useRouter()
+  const [messageApi, contextHolder] = message.useMessage()
+  useEffect(() => {
+    if (router.query.message) {
+      messageApi.info(router.query.message)
+    }
+  }, [messageApi, router.query.message])
 
   return (
     <>
+      {contextHolder}
       {/*
         This example requires updating your template:
 

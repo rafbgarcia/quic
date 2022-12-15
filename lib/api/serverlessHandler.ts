@@ -19,7 +19,11 @@ export const ServerlessFunctionHandler = function ({
       console.error(">>> Handler Error", e)
 
       const pathname = req.headers.referer ? new URL(req.headers.referer).pathname : "/"
-      return res.redirect(encodeURI(`${pathname}?message=${e.message || e}`))
+      if (req.headers["content-type"]?.includes("json")) {
+        return res.status(400).json({ quicError: e.message })
+      } else {
+        return res.redirect(encodeURI(`${pathname}?message=${e.message || e}`))
+      }
     }
   }
 
