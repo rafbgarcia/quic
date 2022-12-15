@@ -71,7 +71,7 @@ export default ServerlessFunctionHandler({
       include: { requestCode: true },
     })
 
-    res.json({ request })
+    res.json(request)
   },
 })
 

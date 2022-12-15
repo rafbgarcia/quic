@@ -1,18 +1,20 @@
 import { PlusOutlined } from "@ant-design/icons"
 import { SquaresPlusIcon } from "@heroicons/react/24/outline"
-import { Button, Checkbox, Form, InputNumber, Modal, Select } from "antd"
+import { Request, RequestCode } from "@prisma/client"
+import { Button, Checkbox, Form, InputNumber, Modal, Select, Spin } from "antd"
+import classNames from "classnames"
+import { intlFormatDistance, parseISO } from "date-fns"
 import map from "lodash/map"
 import { GetServerSidePropsContext } from "next"
 import Head from "next/head"
 import { useRouter } from "next/router"
 import { useState } from "react"
-import Stripe from "stripe"
+import useSWR from "swr"
 import AdminLayout from "../../components/AdminLayout"
 import { MAX_AMOUNT, MIN_AMOUNT } from "../../lib/amount"
-import { createRequest } from "../../lib/api"
+import { createRequest, fetcher } from "../../lib/api"
 import { getLoginSession } from "../../lib/api/auth"
 import { selectedBusiness } from "../../lib/api/business"
-import { prisma } from "../../lib/api/db"
 import { ExpiresIn, EXPIRES_IN_MAP, RequestType, REQUEST_TYPE_MAP } from "../../lib/enums"
 import { makeSerializable } from "../../lib/serializable"
 
@@ -21,22 +23,26 @@ type Props = Awaited<ReturnType<typeof getServerSideProps>>["props"]
 export async function getServerSideProps({ req }: GetServerSidePropsContext) {
   const admin = (await getLoginSession(req))!.admin
   const business = (await selectedBusiness(admin))!
-  const requests = await prisma.request.findMany({
-    take: 20,
-    where: { businessId: business.id },
-  })
 
   return {
     props: {
       business: makeSerializable(business)!,
-      requests: [] || makeSerializable(requests),
     },
   }
 }
 
+type RequestWithCode = Request & { requestCode: RequestCode | null }
+
 export default function Dashboard(props: Props) {
-  const [selectedRequest, setSelectedRequest] = useState()
-  const account = props.business.stripeMeta as unknown as Stripe.Account
+  const router = useRouter()
+  const { data: requests } = useSWR<RequestWithCode[] | undefined>("/api/admin/requests", fetcher)
+
+  let selectedId = router.query.selectedId
+  let selectedRequest: RequestWithCode | null = null
+  if (requests) {
+    selectedId ||= requests[0].id
+    selectedRequest = requests.find((req) => req.id === selectedId)!
+  }
 
   return (
     <>
@@ -46,11 +52,7 @@ export default function Dashboard(props: Props) {
       <AdminLayout>
         <main className="relative z-0 flex-1 overflow-y-auto focus:outline-none order-last">
           <article>
-            {props.requests.length > 0 ? (
-              <RequestDetails selectedRequest={selectedRequest} />
-            ) : (
-              <RequestEmptyState />
-            )}
+            {selectedRequest ? <RequestDetails request={selectedRequest} /> : <RequestEmptyState />}
           </article>
         </main>
 
@@ -60,7 +62,13 @@ export default function Dashboard(props: Props) {
           </div>
 
           <nav className="min-h-0 flex-1 overflow-y-auto" aria-label="Directory">
-            {props.requests.length > 0 ? <Requests {...props} /> : <EmptyState />}
+            {!requests ? (
+              <Spin className="ml-6" />
+            ) : requests.length > 0 ? (
+              <Requests requests={requests} selectedId={selectedId as string} />
+            ) : (
+              <EmptyState />
+            )}
           </nav>
         </aside>
       </AdminLayout>
@@ -68,49 +76,46 @@ export default function Dashboard(props: Props) {
   )
 }
 
-function Requests({ requests }: Props) {
-  /*
-  {Object.keys(requests).map((letter) => (
-              <div key={letter} className="relative">
-                <div className="sticky top-0 z-10 border-t border-b border-gray-200 bg-gray-50 px-6 py-1 text-sm font-medium text-gray-500">
-                  <h3>{letter}</h3>
-                </div>
-                <ul role="list" className="relative z-0 divide-y divide-gray-200">
-                  {requests[letter].map((person) => (
-                    <li key={person.id}>
-                      <div className="relative flex items-center space-x-3 px-6 py-5 focus-within:ring-2 focus-within:ring-inset focus-within:ring-pink-500 hover:bg-gray-50">
-                        <div className="flex-shrink-0">
-                        <div className="min-w-0 flex-1">
-                          <a href="#" className="focus:outline-none">
-                            <span className="absolute inset-0" aria-hidden="true" />
-                            <p className="text-sm font-medium text-gray-900">{person.name}</p>
-                            <p className="truncate text-sm text-gray-500">{person.role}</p>
-                          </a>
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-
-*/
-  return <></>
+function Requests({ requests, selectedId }: { requests: RequestWithCode[]; selectedId: string }) {
+  const router = useRouter()
+  return (
+    <ul className="">
+      {requests.map((request) => (
+        <li
+          onClick={() => router.push(`/admin?selectedId=${request.id}`)}
+          className={classNames("cursor-pointer border-l-2 border-b border-b-gray-200", {
+            "border-l-white": selectedId !== request.id,
+            "border-l-blue-700": selectedId === request.id,
+          })}
+          key={request.id}
+        >
+          <div className="px-6 py-5 text-sm hover:bg-gray-50">
+            <p className="text-gray-900 flex items-center justify-between">
+              <span className="font-medium">{request.requestCodeRef}</span>
+              <span>{request.complete ? "Completo" : "Pendente"}</span>
+            </p>
+            <p className="truncate text-gray-500">
+              {intlFormatDistance(parseISO(request.createdAt as unknown as string), new Date(), {
+                locale: "pt-BR",
+              })}
+            </p>
+          </div>
+        </li>
+      ))}
+    </ul>
+  )
 }
 
 /**
  * Request Details
  */
 
-function RequestDetails() {
-  const router = useRouter()
-  if (!router.query.id) return null
-
+function RequestDetails({ request }: { request: Request }) {
   return (
     <>
       <div className="mx-auto max-w-5xl px-8">
         <div className="mt-6 min-w-0 flex-1">
-          <h3 className="truncate text-2xl font-bold text-gray-900">Solicitação 938172</h3>
+          <h3 className="truncate text-2xl font-bold text-gray-900">Solicitação {request.requestCodeRef}</h3>
         </div>
       </div>
 
@@ -146,10 +151,12 @@ function formatCurrency(value: string) {
 }
 
 function NewRequest({ show, setShow }: any) {
+  const router = useRouter()
   const [form] = Form.useForm()
   const requestedInfo = Form.useWatch("requestedInfo", form) || []
   const onFinish = async (values: any) => {
     const request = await createRequest(values)
+    router.replace(`/admin?selected=${request.id}`)
   }
 
   const expiresInOpts = map(EXPIRES_IN_MAP, (label, value) => ({ label, value }))

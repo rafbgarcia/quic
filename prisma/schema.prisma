@@ -41,7 +41,7 @@ model Request {
   business              Business     @relation(fields: [businessId], references: [id])
   requestCode           RequestCode?
   createdAt             DateTime     @default(now())
-  fulfilled             Boolean      @default(false)
+  complete              Boolean      @default(false)
   stripePaymentIntentId String?      @db.VarChar(50)
   amount                Int?         @db.UnsignedMediumInt
 

@@ -1,5 +1,7 @@
 import { message } from "antd"
 
+export const fetcher = (...args: [any]) => fetch(...args).then((res) => res.json())
+
 export const createRequest = (data: any) => post("/api/admin/requests/create", data)
 
 export const post = (path: string, data: any = {}) => {
