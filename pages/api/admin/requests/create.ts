@@ -1,4 +1,4 @@
-import { Business } from "@prisma/client"
+import { Business, ExpiresIn } from "@prisma/client"
 import addMinutes from "date-fns/addMinutes"
 import { customAlphabet } from "nanoid"
 import { amountHelperTxt, validateAmount } from "../../../../lib/amount"
@@ -7,7 +7,7 @@ import { selectedBusiness } from "../../../../lib/api/business"
 import { prisma } from "../../../../lib/api/db"
 import { ServerlessFunctionHandler } from "../../../../lib/api/serverlessHandler"
 import { stripe } from "../../../../lib/api/stripe"
-import { ExpiresIn, RequestType } from "../../../../lib/enums"
+import { RequestType } from "../../../../lib/enums"
 import { ensureExhaustive } from "../../../../lib/util"
 
 const makeCode = customAlphabet("0123456789", 6)
@@ -23,12 +23,12 @@ function stripeFee(amount: number) {
   return feeInt
 }
 
-function makeExpiresAt(expiresIn: keyof ExpiresIn): Date {
-  if (expiresIn === ExpiresIn["15 minutes"]) {
+function makeExpiresAt(expiresIn: ExpiresIn): Date {
+  if (expiresIn === ExpiresIn.minutes_15) {
     return addMinutes(new Date(), 15)
-  } else if (expiresIn === ExpiresIn["1 hour"]) {
+  } else if (expiresIn === ExpiresIn.hours_1) {
     return addMinutes(new Date(), 60)
-  } else if (expiresIn === ExpiresIn["24 hours"]) {
+  } else if (expiresIn === ExpiresIn.hours_24) {
     return addMinutes(new Date(), 60 * 24)
   }
 
@@ -44,13 +44,13 @@ export default ServerlessFunctionHandler({
     const requestsPayment = requestedInfo.includes(RequestType.payment)
 
     if (!Array.isArray(requestedInfo) || requestedInfo.length === 0) {
-      return res.redirect(encodeURI("/admin?message=Selecione ao menos uma solicitação"))
+      return res.json({ quicError: "Selecione ao menos uma solicitação" })
     } else if (!requestedInfo.every((requestType) => Object.keys(RequestType).includes(requestType))) {
-      return res.redirect(encodeURI("/admin?message=Solicitação inválida"))
+      return res.json({ quicError: "Solicitação inválida" })
     } else if (requestsPayment && !validateAmount(amount)) {
-      return res.redirect(encodeURI(`/admin?message=${amountHelperTxt}`))
-    } else if (!expiresIn || !ExpiresIn[expiresIn as keyof ExpiresIn]) {
-      return res.redirect(encodeURI(`/admin?message=Selecione um tempo de expiração para o código`))
+      return res.json({ quicError: amountHelperTxt })
+    } else if (!Object.keys(ExpiresIn).includes(expiresIn)) {
+      return res.json({ quicError: "Selecione um tempo de expiração para o código" })
     }
 
     const codeDigits = makeCode()
@@ -61,6 +61,7 @@ export default ServerlessFunctionHandler({
         businessId: business.id,
         stripePaymentIntentId: requestsPayment ? (await createPaymentIntent(business, amount)).id : undefined,
         requestCodeRef: codeDigits,
+        requestCodeExpiresIn: expiresIn,
         requestCode: {
           create: {
             id: codeDigits,

@@ -35,13 +35,21 @@ model Business {
   @@index([adminId])
 }
 
+enum ExpiresIn {
+  minutes_15
+  hours_1
+  hours_24
+}
+
 model Request {
   id                    String       @id @default(cuid()) @db.VarChar(25)
-  businessId            String       @db.VarChar(50)
   business              Business     @relation(fields: [businessId], references: [id])
+  businessId            String       @db.VarChar(50)
   requestCode           RequestCode?
+  customer              Customer?    @relation(fields: [customerId], references: [id])
+  customerId            String?      @db.VarChar(50)
   createdAt             DateTime     @default(now())
-  complete              Boolean      @default(false)
+  updatedAt             DateTime     @updatedAt
   stripePaymentIntentId String?      @db.VarChar(50)
   amount                Int?         @db.UnsignedMediumInt
 
@@ -49,15 +57,13 @@ model Request {
   // @see lib/enums.ts
   requestedInfo Json
 
-  // @param referenceText Additional information for the business
-  // to identify this request, such as customer name or phone number.
-  referenceText String? @db.VarChar(255)
-
   // @param requestCodeRef keep a reference of the code used to access this request.
   // RequestCode's are deleted when expired, hence we keep this reference.
-  requestCodeRef String @db.VarChar(12)
+  requestCodeRef       String    @db.VarChar(12)
+  requestCodeExpiresIn ExpiresIn
 
   @@index([businessId])
+  @@index([customerId])
 }
 
 model RequestCode {
@@ -76,7 +82,16 @@ model RequestCode {
 
 model Customer {
   // `id` is the Stripe's Customer ID
-  id        String   @id @db.VarChar(255)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String    @id @db.VarChar(50)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  documentId   String?   @db.VarChar(30)
+  email        String?   @db.VarChar(100)
+  firstName    String?   @db.VarChar(30)
+  lastName     String?   @db.VarChar(30)
+  phoneNumber  String?   @db.VarChar(15)
+  zip          String?   @db.VarChar(12)
+  streetNumber String?   @db.VarChar(12)
+  complement   String?   @db.VarChar(50)
+  requests     Request[]
 }

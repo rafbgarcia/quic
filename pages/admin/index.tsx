@@ -1,21 +1,20 @@
-import { PlusOutlined } from "@ant-design/icons"
+import { ClockCircleOutlined, PlusOutlined } from "@ant-design/icons"
 import { SquaresPlusIcon } from "@heroicons/react/24/outline"
-import { Request, RequestCode } from "@prisma/client"
+import { ExpiresIn, Request } from "@prisma/client"
 import { Button, Checkbox, Form, InputNumber, Modal, Select, Spin } from "antd"
 import classNames from "classnames"
-import { intlFormatDistance, parseISO } from "date-fns"
+import { formatDistanceToNowStrict, intlFormatDistance, parseISO } from "date-fns"
 import map from "lodash/map"
 import { GetServerSidePropsContext } from "next"
 import Head from "next/head"
 import { useRouter } from "next/router"
 import { useState } from "react"
-import useSWR from "swr"
 import AdminLayout from "../../components/AdminLayout"
-import { MAX_AMOUNT, MIN_AMOUNT } from "../../lib/amount"
-import { createRequest, fetcher } from "../../lib/api"
+import { intlCurrency, MAX_AMOUNT, MIN_AMOUNT } from "../../lib/amount"
+import { RequestsResponse, useCreateRequest, useRequests } from "../../lib/api"
 import { getLoginSession } from "../../lib/api/auth"
 import { selectedBusiness } from "../../lib/api/business"
-import { ExpiresIn, EXPIRES_IN_MAP, RequestType, REQUEST_TYPE_MAP } from "../../lib/enums"
+import { EXPIRES_IN_MAP, RequestType, REQUEST_TYPE_MAP } from "../../lib/enums"
 import { makeSerializable } from "../../lib/serializable"
 
 type Props = Awaited<ReturnType<typeof getServerSideProps>>["props"]
@@ -31,17 +30,16 @@ export async function getServerSideProps({ req }: GetServerSidePropsContext) {
   }
 }
 
-type RequestWithCode = Request & { requestCode: RequestCode | null }
-
 export default function Dashboard(props: Props) {
   const router = useRouter()
-  const { data: requests } = useSWR<RequestWithCode[] | undefined>("/api/admin/requests", fetcher)
+  const { data: requests } = useRequests()
+  const [showNewRequestModal, setShowNewRequestModal] = useState(false)
 
   let selectedId = router.query.selectedId
-  let selectedRequest: RequestWithCode | null = null
-  if (requests) {
+  let selectedRequest: RequestsResponse[0] | undefined
+  if (requests && requests.length > 0) {
     selectedId ||= requests[0].id
-    selectedRequest = requests.find((req) => req.id === selectedId)!
+    selectedRequest = requests.find((req) => req.id === selectedId) || requests[0]
   }
 
   return (
@@ -57,8 +55,14 @@ export default function Dashboard(props: Props) {
         </main>
 
         <aside className="w-96 flex-shrink-0 border-r border-gray-200 order-first flex flex-col">
-          <div className="px-6 pt-6 pb-4">
+          <div className="px-6 pt-6 pb-4 flex items-center justify-between">
             <h2 className="text-lg font-medium text-gray-900">Solicitações</h2>
+            <Button
+              className="flex items-center justify-center"
+              onClick={() => setShowNewRequestModal(true)}
+              icon={<PlusOutlined />}
+              type="primary"
+            />
           </div>
 
           <nav className="min-h-0 flex-1 overflow-y-auto" aria-label="Directory">
@@ -67,16 +71,32 @@ export default function Dashboard(props: Props) {
             ) : requests.length > 0 ? (
               <Requests requests={requests} selectedId={selectedId as string} />
             ) : (
-              <EmptyState />
+              <EmptyState setShowNewRequestModal={setShowNewRequestModal} />
             )}
           </nav>
         </aside>
+        <NewRequestModal show={showNewRequestModal} setShow={setShowNewRequestModal} />
       </AdminLayout>
     </>
   )
 }
 
-function Requests({ requests, selectedId }: { requests: RequestWithCode[]; selectedId: string }) {
+function RequestStatus({ request }: { request: RequestsResponse[0] }) {
+  if (request.customerId) {
+    return <span>Completo</span>
+  }
+  if (request.requestCode) {
+    return (
+      <span className="flex items-center gap-1">
+        <ClockCircleOutlined />
+        {formatDistanceToNowStrict(parseISO(request.requestCode.expiresAt as any))}
+      </span>
+    )
+  }
+  return <span className="text-red-700">Expirado</span>
+}
+
+function Requests({ requests, selectedId }: { requests: RequestsResponse; selectedId: string }) {
   const router = useRouter()
   return (
     <ul className="">
@@ -90,15 +110,17 @@ function Requests({ requests, selectedId }: { requests: RequestWithCode[]; selec
           key={request.id}
         >
           <div className="px-6 py-5 text-sm hover:bg-gray-50">
-            <p className="text-gray-900 flex items-center justify-between">
+            <div className="text-gray-900 flex items-center justify-between">
               <span className="font-medium">{request.requestCodeRef}</span>
-              <span>{request.complete ? "Completo" : "Pendente"}</span>
-            </p>
-            <p className="truncate text-gray-500">
-              {intlFormatDistance(parseISO(request.createdAt as unknown as string), new Date(), {
-                locale: "pt-BR",
-              })}
-            </p>
+              <RequestStatus request={request} />
+            </div>
+            <div className=" flex items-center justify-between">
+              <span className="text-gray-500">
+                {intlFormatDistance(parseISO(request.createdAt as unknown as string), new Date(), {
+                  locale: "pt-BR",
+                })}
+              </span>
+            </div>
           </div>
         </li>
       ))}
@@ -119,22 +141,28 @@ function RequestDetails({ request }: { request: Request }) {
         </div>
       </div>
 
-      <div className="mx-auto mt-6 max-w-5xl px-8">
-        <dl className="grid grid-cols-1 gap-x-4 gap-y-8 md:grid-cols-2">
-          <div className="col-span-1">
-            <dt className="text-sm font-medium text-gray-500">Valor</dt>
-            <dd className="mt-1 text-sm text-gray-900">R$ 29,00</dd>
-          </div>
-          <div className="col-span-1">
-            <dt className="text-sm font-medium text-gray-500">Valor</dt>
-            <dd className="mt-1 text-sm text-gray-900">R$ 29,00</dd>
-          </div>
-          <div className="col-span-1">
-            <dt className="text-sm font-medium text-gray-500">Nome</dt>
-            <dd className="mt-1 text-sm text-gray-900">Rafael Garcia</dd>
-          </div>
-        </dl>
-      </div>
+      <table className="w-full mt-6 px-8">
+        <tbody>
+          <tr>
+            {request.amount && (
+              <>
+                <td width="15%" className="text-sm font-medium text-gray-500">
+                  Valor
+                </td>
+                <td className="mb-1 text-sm text-gray-900">{intlCurrency(request.amount)}</td>
+              </>
+            )}
+          </tr>
+          {((request.requestedInfo as string[]) || []).map((info) => (
+            <tr key={info}>
+              <td className="text-sm font-medium text-gray-500">
+                {REQUEST_TYPE_MAP[info as keyof RequestType]}
+              </td>
+              {/* <td className="mb-1 text-sm text-gray-900">{customerInfo(request.customer)}</td> */}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </>
   )
 }
@@ -145,20 +173,25 @@ function RequestDetails({ request }: { request: Request }) {
 
 function formatCurrency(value: string) {
   let v = parseFloat(value)
-  if (Number.isNaN(v)) v = 0
+  if (Number.isNaN(v)) return ""
 
   return (v / 100).toFixed(2).replace(".", ",")
 }
 
-function NewRequest({ show, setShow }: any) {
+function NewRequestModal({ show, setShow }: any) {
+  const { trigger, isMutating } = useCreateRequest()
   const router = useRouter()
   const [form] = Form.useForm()
+
   const requestedInfo = Form.useWatch("requestedInfo", form) || []
   const onFinish = async (values: any) => {
-    const request = await createRequest(values)
-    router.replace(`/admin?selected=${request.id}`)
+    const request = (await trigger(values)) as unknown as RequestsResponse[0] | undefined
+    if (request) {
+      router.replace(`/admin?selectedId=${request.id}`)
+      form.resetFields()
+      setShow(false)
+    }
   }
-
   const expiresInOpts = map(EXPIRES_IN_MAP, (label, value) => ({ label, value }))
 
   return (
@@ -168,6 +201,7 @@ function NewRequest({ show, setShow }: any) {
         okText="Gerar código"
         cancelText="Cancelar"
         open={show}
+        okButtonProps={{ loading: isMutating }}
         onOk={() => form.submit()}
         onCancel={() => setShow(false)}
         destroyOnClose
@@ -178,7 +212,7 @@ function NewRequest({ show, setShow }: any) {
           name="control-hooks"
           layout="vertical"
           requiredMark
-          initialValues={{ requestedInfo: [RequestType.payment], expiresIn: ExpiresIn["15 minutes"] }}
+          initialValues={{ requestedInfo: [RequestType.payment], expiresIn: ExpiresIn.minutes_15 }}
           className="flex justify-between gap-8"
         >
           <div className="w-[50%]">
@@ -213,6 +247,7 @@ function NewRequest({ show, setShow }: any) {
                   className="w-full"
                   maxLength={9}
                   addonBefore="R$"
+                  placeholder="49,90"
                   formatter={(val) => formatCurrency(val as unknown as string)}
                 />
               </Form.Item>
@@ -238,20 +273,17 @@ function NewRequest({ show, setShow }: any) {
  * Empty states
  */
 
-function EmptyState() {
-  const [showNewRequest, setShowNewRequest] = useState(false)
-
+function EmptyState({ setShowNewRequestModal }: { setShowNewRequestModal: (val: boolean) => any }) {
   return (
     <div className="text-center">
       <SquaresPlusIcon className="mx-auto h-12 w-12 text-gray-400" />
       <h3 className="mt-2 text-sm font-medium text-gray-900">Nenhuma solicitação</h3>
       <p className="mt-1 text-sm text-gray-500">Comece criando sua primeira solitição.</p>
       <div className="mt-6">
-        <Button onClick={() => setShowNewRequest(true)} icon={<PlusOutlined />} type="primary">
+        <Button onClick={() => setShowNewRequestModal(true)} icon={<PlusOutlined />} type="primary">
           Nova Solitação
         </Button>
       </div>
-      <NewRequest show={showNewRequest} setShow={setShowNewRequest} />
     </div>
   )
 }

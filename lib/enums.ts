@@ -1,3 +1,5 @@
+import { ExpiresIn } from "@prisma/client"
+
 /**
  * RequestType
  */
@@ -25,18 +27,11 @@ checkExhaustiveMapping(REQUEST_TYPE_MAP, RequestType)
 /**
  * ExpiresIn
  */
-export type ExpiresIn = typeof ExpiresIn
-
-export const ExpiresIn = {
-  "15 minutes": "15 minutes",
-  "1 hour": "1 hour",
-  "24 hours": "24 hours",
-} as const
 
 export const EXPIRES_IN_MAP = {
-  "15 minutes": "15 minutos",
-  "1 hour": "1 hora",
-  "24 hours": "24 horas",
+  [ExpiresIn.minutes_15]: "15 minutos",
+  [ExpiresIn.hours_1]: "1 hora",
+  [ExpiresIn.hours_24]: "24 horas",
 } as const
 
 checkExhaustiveMapping(EXPIRES_IN_MAP, ExpiresIn)
