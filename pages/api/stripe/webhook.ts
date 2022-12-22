@@ -33,16 +33,12 @@ const eventHandlers: { [key: string]: (prisma: typeof prismaClient, object: any)
     })
   },
 
-  // "payment_intent.succeeded": async (prisma, paymentIntent: Stripe.PaymentIntent) => {
-  //   console.log(">>> paymentIntent", paymentIntent)
-
-  //   await prisma.charge.update({
-  //     where: { stripePaymentIntentId: paymentIntent.id },
-  //     data: { paid: true },
-  //   })
-  // },
-
-  // "payment.created": async (prisma, charge: Stripe.Charge) => {
-  //   console.log(">>> charge", charge)
-  // },
+  "payment_intent.succeeded": async (prisma, paymentIntent: Stripe.PaymentIntent) => {
+    if (paymentIntent.status === "succeeded") {
+      await prisma.request.update({
+        where: { id: paymentIntent.metadata.requestId },
+        data: { complete: true },
+      })
+    }
+  },
 }

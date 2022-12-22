@@ -1,9 +1,15 @@
-import { ClockCircleOutlined, PlusOutlined } from "@ant-design/icons"
+import {
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  CloseCircleOutlined,
+  PlusOutlined,
+} from "@ant-design/icons"
 import { SquaresPlusIcon } from "@heroicons/react/24/outline"
-import { ExpiresIn, Request } from "@prisma/client"
-import { Button, Checkbox, Form, InputNumber, Modal, Select, Spin } from "antd"
+import { ExpiresIn, RequestType } from "@prisma/client"
+import { Button, Checkbox, Form, InputNumber, message, Modal, Select, Spin } from "antd"
 import classNames from "classnames"
-import { formatDistanceToNowStrict, intlFormatDistance, parseISO } from "date-fns"
+import { formatDistanceToNowStrict, isBefore, parseISO } from "date-fns"
+import ptBR from "date-fns/locale/pt-BR"
 import map from "lodash/map"
 import { GetServerSidePropsContext } from "next"
 import Head from "next/head"
@@ -14,7 +20,7 @@ import { intlCurrency, MAX_AMOUNT, MIN_AMOUNT } from "../../lib/amount"
 import { RequestsResponse, useCreateRequest, useRequests } from "../../lib/api"
 import { getLoginSession } from "../../lib/api/auth"
 import { selectedBusiness } from "../../lib/api/business"
-import { EXPIRES_IN_MAP, RequestType, REQUEST_TYPE_MAP } from "../../lib/enums"
+import { EXPIRES_IN_MAP, REQUEST_TYPE_MAP } from "../../lib/enums"
 import { makeSerializable } from "../../lib/serializable"
 
 type Props = Awaited<ReturnType<typeof getServerSideProps>>["props"]
@@ -82,18 +88,28 @@ export default function Dashboard(props: Props) {
 }
 
 function RequestStatus({ request }: { request: RequestsResponse[0] }) {
-  if (request.customerId) {
-    return <span>Completo</span>
-  }
-  if (request.requestCode) {
+  if (request.complete) {
     return (
-      <span className="flex items-center gap-1">
-        <ClockCircleOutlined />
-        {formatDistanceToNowStrict(parseISO(request.requestCode.expiresAt as any))}
+      <span className="flex items-center gap-1 font-medium">
+        <CheckCircleOutlined className="text-green-700" /> Completo
       </span>
     )
   }
-  return <span className="text-red-700">Expirado</span>
+  if (!request.requestCode || isBefore(parseISO(request.requestCode.expiresAt as any), new Date())) {
+    return (
+      <span className="flex items-center gap-1 font-medium">
+        <CloseCircleOutlined className="text-red-700" />
+        Expirado
+      </span>
+    )
+  }
+  return (
+    <span className="flex items-center gap-1 text-gray-600">
+      <ClockCircleOutlined />
+      Expira em{" "}
+      {formatDistanceToNowStrict(parseISO(request!.requestCode!.expiresAt as any), { locale: ptBR })}
+    </span>
+  )
 }
 
 function Requests({ requests, selectedId }: { requests: RequestsResponse; selectedId: string }) {
@@ -104,21 +120,27 @@ function Requests({ requests, selectedId }: { requests: RequestsResponse; select
         <li
           onClick={() => router.push(`/admin?selectedId=${request.id}`)}
           className={classNames("cursor-pointer border-l-2 border-b border-b-gray-200", {
-            "border-l-white": selectedId !== request.id,
-            "border-l-blue-700": selectedId === request.id,
+            "border-l-white hover:bg-gray-50": selectedId !== request.id,
+            "border-l-blue-700 bg-gray-100": selectedId === request.id,
           })}
           key={request.id}
         >
-          <div className="px-6 py-5 text-sm hover:bg-gray-50">
-            <div className="text-gray-900 flex items-center justify-between">
-              <span className="font-medium">{request.requestCodeRef}</span>
-              <RequestStatus request={request} />
-            </div>
+          <div className="px-6 py-5 text-sm">
+            <table className="text-gray-900" width="100%">
+              <tbody>
+                <tr>
+                  <td className="font-medium w-[80px]">{request.requestCodeRef}</td>
+                  <td>
+                    <RequestStatus request={request} />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
             <div className=" flex items-center justify-between">
               <span className="text-gray-500">
-                {intlFormatDistance(parseISO(request.createdAt as unknown as string), new Date(), {
-                  locale: "pt-BR",
-                })}
+                {((request!.requestedInfo as RequestType[]) || [])
+                  .map((requestType) => REQUEST_TYPE_MAP[requestType])
+                  .join(", ")}
               </span>
             </div>
           </div>
@@ -132,7 +154,7 @@ function Requests({ requests, selectedId }: { requests: RequestsResponse; select
  * Request Details
  */
 
-function RequestDetails({ request }: { request: Request }) {
+function RequestDetails({ request }: { request: RequestsResponse[0] }) {
   return (
     <>
       <div className="mx-auto max-w-5xl px-8">
@@ -143,28 +165,29 @@ function RequestDetails({ request }: { request: Request }) {
 
       <table className="w-full mt-6 px-8">
         <tbody>
-          <tr>
-            {request.amount && (
-              <>
-                <td width="15%" className="text-sm font-medium text-gray-500">
-                  Valor
-                </td>
-                <td className="mb-1 text-sm text-gray-900">{intlCurrency(request.amount)}</td>
-              </>
-            )}
-          </tr>
-          {((request.requestedInfo as string[]) || []).map((info) => (
-            <tr key={info}>
-              <td className="text-sm font-medium text-gray-500">
-                {REQUEST_TYPE_MAP[info as keyof RequestType]}
+          {request.amount && (
+            <tr>
+              <td className="text-sm font-medium text-gray-500 w-[30%]">Pagamento</td>
+              <td className="mb-1 text-sm text-gray-900">{intlCurrency(request.amount)}</td>
+            </tr>
+          )}
+          {((request.requestedInfo as RequestType[]) || []).map((requestType) => (
+            <tr key={requestType}>
+              <td className="text-sm font-medium text-gray-500 w-[30%]">{REQUEST_TYPE_MAP[requestType]}</td>
+              <td className="mb-1 text-sm text-gray-900">
+                <RequestTypeDetail type={requestType} request={request} />
               </td>
-              {/* <td className="mb-1 text-sm text-gray-900">{customerInfo(request.customer)}</td> */}
             </tr>
           ))}
         </tbody>
       </table>
     </>
   )
+}
+
+function RequestTypeDetail({ type, request }: { type: RequestType; request: RequestsResponse[0] }) {
+  return <>Em breve</>
+  ensureExhaustive(type)
 }
 
 /**
@@ -183,10 +206,12 @@ function NewRequestModal({ show, setShow }: any) {
   const router = useRouter()
   const [form] = Form.useForm()
 
-  const requestedInfo = Form.useWatch("requestedInfo", form) || []
+  const requestPayment = Form.useWatch("requestPayment", form) || false
   const onFinish = async (values: any) => {
-    const request = (await trigger(values)) as unknown as RequestsResponse[0] | undefined
-    if (request) {
+    const request = await trigger(values)
+    if (request.quicError) {
+      message.error(request.quicError)
+    } else {
       router.replace(`/admin?selectedId=${request.id}`)
       form.resetFields()
       setShow(false)
@@ -212,15 +237,14 @@ function NewRequestModal({ show, setShow }: any) {
           name="control-hooks"
           layout="vertical"
           requiredMark
-          initialValues={{ requestedInfo: [RequestType.payment], expiresIn: ExpiresIn.minutes_15 }}
+          initialValues={{ requestPayment: true, expiresIn: ExpiresIn.minutes_15 }}
           className="flex justify-between gap-8"
         >
           <div className="w-[50%]">
-            <Form.Item
-              name="requestedInfo"
-              label=""
-              rules={[{ type: "array", required: true, message: "Selecione ao menos uma opção" }]}
-            >
+            <Form.Item valuePropName="checked" name="requestPayment" noStyle>
+              <Checkbox>Pagamento</Checkbox>
+            </Form.Item>
+            <Form.Item name="requestedInfo" noStyle>
               <Checkbox.Group className="block">
                 {map(REQUEST_TYPE_MAP, (label, value) => (
                   <div key={value}>
@@ -233,11 +257,16 @@ function NewRequestModal({ show, setShow }: any) {
             </Form.Item>
           </div>
           <div className="w-[50%]">
-            {requestedInfo.includes(RequestType.payment) && (
+            {requestPayment && (
               <Form.Item
                 name="amount"
                 label="Qual valor?"
                 rules={[
+                  {
+                    type: "number",
+                    required: true,
+                    message: `informe um valor ou desmarque a opção de "Pagamento"`,
+                  },
                   { type: "number", min: MIN_AMOUNT, message: "valor mínimo: R$ 1,00" },
                   { type: "number", max: MAX_AMOUNT, message: "valor máximo: R$ 1 milhão" },
                 ]}

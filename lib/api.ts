@@ -1,5 +1,6 @@
-import { Customer, Request, RequestCode } from "@prisma/client"
+import { Business, Customer, Request, RequestCode } from "@prisma/client"
 import { message } from "antd"
+import Stripe from "stripe"
 import useSWR from "swr"
 import useSWRMutation from "swr/mutation"
 
@@ -20,6 +21,25 @@ export function useRequests() {
 
 export function useCreateRequest() {
   return useSWRMutation("/api/admin/requests", post("/api/admin/requests/create"))
+}
+
+/**
+ * RequestCode API
+ */
+
+export type RequestCodeResponse = {
+  requestCode:
+    | (RequestCode & {
+        request: Request & {
+          business: Business
+        }
+      })
+    | null
+  paymentIntent: null | Stripe.PaymentIntent
+}
+
+export function useRequestCode(id: string) {
+  return useSWR<RequestCodeResponse>(`/api/requestCodes/${id}`, get)
 }
 
 /**
@@ -46,13 +66,3 @@ function get(...args: [any]) {
     .then((res) => res.json())
     .catch((e) => message.info(e.message))
 }
-
-// export function post(path: string, data: any = {}) {
-//   return fetch(path, {
-//     method: "POST",
-//     headers: { "Content-Type": "application/json" },
-//     body: JSON.stringify(data),
-//   })
-//     .then((res) => res.json())
-//     .catch((e) => message.info(e.message))
-// }

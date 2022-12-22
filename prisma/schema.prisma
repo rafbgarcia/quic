@@ -2,13 +2,19 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["clientExtensions"]
 }
 
 datasource db {
   provider     = "mysql"
   url          = env("DATABASE_URL")
   relationMode = "prisma"
+}
+
+model unused_table_to_create_enum_types {
+  id          String       @id
+  requestType RequestType?
 }
 
 model Admin {
@@ -41,26 +47,36 @@ enum ExpiresIn {
   hours_24
 }
 
-model Request {
-  id                    String       @id @default(cuid()) @db.VarChar(25)
-  business              Business     @relation(fields: [businessId], references: [id])
-  businessId            String       @db.VarChar(50)
-  requestCode           RequestCode?
-  customer              Customer?    @relation(fields: [customerId], references: [id])
-  customerId            String?      @db.VarChar(50)
-  createdAt             DateTime     @default(now())
-  updatedAt             DateTime     @updatedAt
-  stripePaymentIntentId String?      @db.VarChar(50)
-  amount                Int?         @db.UnsignedMediumInt
+enum RequestType {
+  fullName
+  shippingAddress
+  phoneNumber
+  id
+  email
+}
 
-  // @param requestedInfo array of requested data
-  // @see lib/enums.ts
-  requestedInfo Json
+model Request {
+  id                   String       @id @default(cuid()) @db.VarChar(30)
+  business             Business     @relation(fields: [businessId], references: [id])
+  businessId           String       @db.VarChar(50)
+  requestCode          RequestCode?
+  customer             Customer?    @relation(fields: [customerId], references: [id])
+  customerId           String?      @db.VarChar(50)
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  amount               Int?         @db.UnsignedMediumInt
+  requestCodeExpiresIn ExpiresIn
+  complete             Boolean      @default(false)
+
+  // There's a PaymentIntent if and only if there's an amount.
+  stripePaymentIntentId String? @db.VarChar(50)
+
+  // @param requestedInfo RequestType[]
+  requestedInfo Json?
 
   // @param requestCodeRef keep a reference of the code used to access this request.
   // RequestCode's are deleted when expired, hence we keep this reference.
-  requestCodeRef       String    @db.VarChar(12)
-  requestCodeExpiresIn ExpiresIn
+  requestCodeRef String @db.VarChar(12)
 
   @@index([businessId])
   @@index([customerId])

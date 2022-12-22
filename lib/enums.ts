@@ -1,21 +1,10 @@
-import { ExpiresIn } from "@prisma/client"
+import { ExpiresIn, RequestType } from "@prisma/client"
 
 /**
  * RequestType
  */
-export type RequestType = typeof RequestType
-
-export const RequestType = {
-  payment: "payment",
-  fullName: "fullName",
-  shippingAddress: "shippingAddress",
-  phoneNumber: "phoneNumber",
-  id: "id",
-  email: "email",
-} as const
 
 export const REQUEST_TYPE_MAP = {
-  payment: "Pagamento",
   fullName: "Nome completo",
   shippingAddress: "Endereço de entrega",
   phoneNumber: "Número de telefone",
@@ -24,6 +13,7 @@ export const REQUEST_TYPE_MAP = {
 } as const
 
 checkExhaustiveMapping(REQUEST_TYPE_MAP, RequestType)
+
 /**
  * ExpiresIn
  */

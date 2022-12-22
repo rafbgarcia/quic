@@ -4,7 +4,7 @@
 // Learn more:
 // https://pris.ly/d/help/next-js-best-practices
 
-import { PrismaClient } from "@prisma/client"
+import { PrismaClient, RequestType } from "@prisma/client"
 
 type PrismaType = ReturnType<typeof initPrisma>
 
@@ -22,7 +22,20 @@ function initPrisma() {
   const prisma = new PrismaClient({
     log: ["query"],
   })
-  return prisma
+  const xprisma = prisma.$extends({
+    name: "requestedInfo",
+    result: {
+      request: {
+        requestInfo: {
+          needs: { requestedInfo: true },
+          compute(request) {
+            return () => request.requestedInfo as RequestType[]
+          },
+        },
+      },
+    },
+  })
+  return xprisma
 
   // return prisma.$extends({
   //   client: {

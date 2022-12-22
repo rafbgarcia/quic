@@ -1,4 +1,5 @@
-import { Business, ExpiresIn } from "@prisma/client"
+import { Business, ExpiresIn, RequestType } from "@prisma/client"
+import cuid from "cuid"
 import addMinutes from "date-fns/addMinutes"
 import { customAlphabet } from "nanoid"
 import { amountHelperTxt, validateAmount } from "../../../../lib/amount"
@@ -7,20 +8,32 @@ import { selectedBusiness } from "../../../../lib/api/business"
 import { prisma } from "../../../../lib/api/db"
 import { ServerlessFunctionHandler } from "../../../../lib/api/serverlessHandler"
 import { stripe } from "../../../../lib/api/stripe"
-import { RequestType } from "../../../../lib/enums"
 import { ensureExhaustive } from "../../../../lib/util"
+
+// 100 reais
+// cliente paga taxa de 1.99% = R$ 101.99
+// Taxa Stripe = R$ 4.459401
+// posto recebe: 101.99 * (1-0.0399) - .39 = 97.530599
+// Taxa Quic: 0.1% do saldo (97.530599) = R$ 0.10
 
 const makeCode = customAlphabet("0123456789", 6)
 
-function quicFee() {
-  // 10 centavinhos :/ =p
-  return 10
+/**
+ * e.g.
+ * amount = 12345
+ * fee = amount * 0.1 / 100 = 12.345
+ * return is 13 (which means 13 cents)
+ *
+ * @param amount Integer e.g. R$ 123,45 is passed as 12345
+ * @returns fee Integer
+ */
+function quicFee(amount: number) {
+  return Math.ceil((amount * 0.1) / 100)
 }
 
 function stripeFee(amount: number) {
-  const feeFloat = (amount / 100) * (3.99 / 100) + 0.39
-  const feeInt = parseFloat(feeFloat.toFixed(2)) * 100
-  return feeInt
+  // Stripe fee is 3.99% + 0.39
+  return Math.ceil(amount * (3.99 / 100)) + 39
 }
 
 function makeExpiresAt(expiresIn: ExpiresIn): Date {
@@ -41,30 +54,34 @@ export default ServerlessFunctionHandler({
     const admin = (await getLoginSession(req))!.admin
     const business = (await selectedBusiness(admin))!
     const { requestedInfo, amount, expiresIn } = req.body
-    const requestsPayment = requestedInfo.includes(RequestType.payment)
+    const requestPayment = !!amount
 
-    if (!Array.isArray(requestedInfo) || requestedInfo.length === 0) {
-      return res.json({ quicError: "Selecione ao menos uma solicitação" })
-    } else if (!requestedInfo.every((requestType) => Object.keys(RequestType).includes(requestType))) {
-      return res.json({ quicError: "Solicitação inválida" })
-    } else if (requestsPayment && !validateAmount(amount)) {
-      return res.json({ quicError: amountHelperTxt })
+    if (requestedInfo && requestedInfo.every((requestType: RequestType) => !!RequestType[requestType])) {
+      return res.status(400).json({ quicError: "Solicitação inválida" })
+    } else if (requestPayment && !validateAmount(amount)) {
+      return res.status(400).json({ quicError: amountHelperTxt })
     } else if (!Object.keys(ExpiresIn).includes(expiresIn)) {
-      return res.json({ quicError: "Selecione um tempo de expiração para o código" })
+      return res.status(400).json({ quicError: "Selecione um tempo de expiração para o código" })
     }
 
-    const codeDigits = makeCode()
+    const newCode = makeCode()
+    const requestId = cuid()
     const request = await prisma.request.create({
       data: {
+        id: requestId,
         amount: amount,
         requestedInfo: requestedInfo,
         businessId: business.id,
-        stripePaymentIntentId: requestsPayment ? (await createPaymentIntent(business, amount)).id : undefined,
-        requestCodeRef: codeDigits,
+        stripePaymentIntentId: requestPayment
+          ? (
+              await createPaymentIntent(business, amount, requestId)
+            ).id
+          : undefined,
+        requestCodeRef: newCode,
         requestCodeExpiresIn: expiresIn,
         requestCode: {
           create: {
-            id: codeDigits,
+            id: newCode,
             expiresAt: makeExpiresAt(expiresIn),
           },
         },
@@ -76,17 +93,15 @@ export default ServerlessFunctionHandler({
   },
 })
 
-function createPaymentIntent(business: Business, amount: number) {
+function createPaymentIntent(business: Business, amount: number, requestId: string) {
   return stripe.paymentIntents.create({
     amount,
+    // statement_descriptor_suffix: "",
     currency: "brl",
-    automatic_payment_methods: {
-      enabled: true,
-    },
-    on_behalf_of: business.id,
-    application_fee_amount: quicFee() + stripeFee(amount),
-    transfer_data: {
-      destination: business.id,
-    },
+    automatic_payment_methods: { enabled: true },
+    on_behalf_of: business.id, // @see https://stripe.com/docs/connect/destination-charges#settlement-merchant
+    application_fee_amount: quicFee(amount) + stripeFee(amount),
+    transfer_data: { destination: business.id },
+    metadata: { requestId },
   })
 }
