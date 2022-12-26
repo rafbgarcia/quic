@@ -21,7 +21,7 @@ export default ServerlessFunctionHandler({
         data: {
           id: account.id,
           adminId: admin.id,
-          name: "Estabelecimento",
+          descriptor: "Estabelecimento",
         },
       })
     }
