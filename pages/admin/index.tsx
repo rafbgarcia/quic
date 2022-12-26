@@ -16,7 +16,7 @@ import Head from "next/head"
 import { useRouter } from "next/router"
 import { useState } from "react"
 import AdminLayout from "../../components/AdminLayout"
-import { intlCurrency, MAX_AMOUNT, MIN_AMOUNT } from "../../lib/amount"
+import { extraFee, intlCurrency, MAX_AMOUNT, MIN_AMOUNT } from "../../lib/amount"
 import { RequestsResponse, useCreateRequest, useRequests } from "../../lib/api"
 import { getLoginSession } from "../../lib/api/auth"
 import { selectedBusiness } from "../../lib/api/business"
@@ -115,7 +115,7 @@ function RequestStatus({ request }: { request: RequestsResponse[0] }) {
 function Requests({ requests, selectedId }: { requests: RequestsResponse; selectedId: string }) {
   const router = useRouter()
   return (
-    <ul className="">
+    <ul>
       {requests.map((request) => (
         <li
           onClick={() => router.push(`/admin?selectedId=${request.id}`)}
@@ -164,18 +164,32 @@ function RequestDetails({ request }: { request: RequestsResponse[0] }) {
         </div>
       </div>
 
-      <table className="w-full mt-6 px-8">
+      <table className="w-96 mt-6 px-8">
         <tbody>
           {request.amount && (
-            <tr>
-              <td className="text-sm font-medium text-gray-500 w-[30%]">Pagamento</td>
-              <td className="mb-1 text-sm text-gray-900">{intlCurrency(request.amount)}</td>
-            </tr>
+            <>
+              <tr>
+                <td className="text-sm font-medium text-gray-500 w-[30%]">Subtotal</td>
+                <td className="mb-1 text-sm text-gray-900 text-right">{intlCurrency(request.amount)}</td>
+              </tr>
+              <tr>
+                <td className="text-sm font-medium text-gray-500 w-[30%]">
+                  Taxa ({(request?.extraFee || 0) / 100}%)
+                </td>
+                <td className="mb-1 text-sm text-gray-900 text-right">{intlCurrency(extraFee(request))}</td>
+              </tr>
+              <tr>
+                <td className="text-sm font-medium text-gray-500 w-[30%]">Total</td>
+                <td className="mb-1 text-sm text-gray-900 text-right">
+                  {intlCurrency(request.amount + extraFee(request))}
+                </td>
+              </tr>
+            </>
           )}
           {((request.requestedInfo as RequestType[]) || []).map((requestType) => (
             <tr key={requestType}>
               <td className="text-sm font-medium text-gray-500 w-[30%]">{REQUEST_TYPE_MAP[requestType]}</td>
-              <td className="mb-1 text-sm text-gray-900">
+              <td className="mb-1 text-sm text-gray-900 text-right">
                 <RequestTypeDetail type={requestType} request={request} />
               </td>
             </tr>

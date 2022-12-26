@@ -3,7 +3,7 @@ import { LockClosedIcon, XCircleIcon } from "@heroicons/react/24/outline"
 import { RequestType } from "@prisma/client"
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js"
 import { loadStripe, StripeElementsOptions } from "@stripe/stripe-js"
-import { Alert, Button, Popover, Skeleton, Spin } from "antd"
+import { Alert, Button, Popover, Skeleton, Spin, Typography } from "antd"
 import { isBefore, parseISO } from "date-fns"
 import { GetServerSidePropsContext } from "next"
 import Head from "next/head"
@@ -62,13 +62,13 @@ export default function RequestCode({ id }: Props) {
         <h1 className="text-xl">Código {requestCode.id}</h1>
         <h3 className="text-md text-gray-500 font-medium">{requestCode.request.business.name}</h3>
 
-        {requestCode.request.business.extraFee ? (
+        {requestCode.request.extraFee ? (
           <table className="w-full text-left mt-5">
             <tbody className="divide-y divide-gray-200">
               <tr className="font-medium">
                 <td className="whitespace-nowrap text-sm text-gray-600">Subtotal</td>
                 <td className="whitespace-nowrap text-sm text-gray-600 text-right">
-                  {intlCurrency(requestCode.request.amount! - extraFee(requestCode.request))}
+                  {intlCurrency(requestCode.request.amount!)}
                 </td>
               </tr>
 
@@ -191,6 +191,10 @@ const CheckoutForm = () => {
       >
         Pagar {amount}
       </Button>
+
+      <div className="mt-5 text-center">
+        <Typography.Link href="/requests">Cancelar</Typography.Link>
+      </div>
     </form>
   )
 }

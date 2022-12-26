@@ -26,15 +26,15 @@ function quicFee(amount: number) {
 }
 
 function stripeFee(amount: number) {
-  // Stripe fee is 3.99% + 0.39
   return Math.ceil(amount * (3.99 / 100)) + 39
 }
 
-function extraFee(business: Business, amount: number) {
-  if (!business.extraFee || business.extraFee === 0) {
+function calcExtraFee(extraFee: number | null, amount: number) {
+  if (!extraFee || extraFee === 0) {
     return 0
   }
-  return Math.ceil((amount * (business.extraFee / 100)) / 100)
+  const feeFloat = extraFee / 100
+  return Math.ceil((amount * feeFloat) / 100)
 }
 
 function makeExpiresAt(expiresIn: ExpiresIn): Date {
@@ -67,17 +67,17 @@ export default ServerlessFunctionHandler({
 
     const newCode = makeCode()
     const requestId = cuid()
-    console.log("fee", extraFee(business, amount))
-
+    const extraFee = business.extraFee
     const request = await prisma.request.create({
       data: {
         id: requestId,
-        amount: amount + extraFee(business, amount),
+        amount: amount,
+        extraFee,
         requestedInfo: requestedInfo,
         businessId: business.id,
         stripePaymentIntentId: requestPayment
           ? (
-              await createPaymentIntent(business, amount, requestId)
+              await createPaymentIntent(business, amount, extraFee, requestId)
             ).id
           : undefined,
         requestCodeRef: newCode,
@@ -96,10 +96,9 @@ export default ServerlessFunctionHandler({
   },
 })
 
-function createPaymentIntent(business: Business, amount: number, requestId: string) {
+function createPaymentIntent(business: Business, amount: number, extraFee: number | null, requestId: string) {
   return stripe.paymentIntents.create({
-    amount: amount + extraFee(business, amount),
-    // statement_descriptor_suffix: "",
+    amount: amount + calcExtraFee(extraFee, amount),
     currency: "brl",
     automatic_payment_methods: { enabled: true },
     on_behalf_of: business.id, // @see https://stripe.com/docs/connect/destination-charges#settlement-merchant

@@ -18,9 +18,9 @@ export function intlCurrency(amount: number) {
 }
 
 export function extraFee(request: any) {
-  if (!request.business.extraFee) {
+  if (!request.extraFee) {
     return 0
   }
-  const feeFloat = request.business.extraFee / 100
+  const feeFloat = request.extraFee / 100
   return Math.ceil((request.amount * feeFloat) / 100)
 }

@@ -68,6 +68,7 @@ model Request {
   createdAt            DateTime     @default(now())
   updatedAt            DateTime     @updatedAt
   amount               Int?         @db.UnsignedMediumInt
+  extraFee             Int?         @db.UnsignedSmallInt
   requestCodeExpiresIn ExpiresIn
   complete             Boolean      @default(false)
 
