@@ -188,7 +188,7 @@ function RequestDetails({ request }: { request: RequestsResponse[0] }) {
 
 function RequestTypeDetail({ type, request }: { type: RequestType; request: RequestsResponse[0] }) {
   return <>Em breve</>
-  ensureExhaustive(type)
+  // ensureExhaustive(type)
 }
 
 /**

@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!customer) {
     const stripeCustomer = await stripe.customers.create()
     customer = await prisma.customer.create({
-      data: { stripeCustomerId: stripeCustomer.id },
+      data: { id: stripeCustomer.id },
       select: { id: true },
     })
   }
