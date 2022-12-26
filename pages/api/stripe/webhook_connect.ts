@@ -12,7 +12,11 @@ export default ServerlessFunctionHandler({
   handler: async function (req: NextApiRequest, res: NextApiResponse) {
     const sig = req.headers["stripe-signature"]!
     const rawBody = await buffer(req)
-    const event: Stripe.Event = stripe.webhooks.constructEvent(rawBody, sig, process.env.ENDPOINT_SECRET!)
+    const event: Stripe.Event = stripe.webhooks.constructEvent(
+      rawBody,
+      sig,
+      process.env.CONNECT_ENDPOINT_SECRET!
+    )
 
     if (eventHandlers[event.type]) {
       console.log(`>>> Handling "${event.type}"`)
@@ -26,12 +30,10 @@ export default ServerlessFunctionHandler({
 })
 
 const eventHandlers: { [key: string]: (prisma: typeof prismaClient, object: any) => void } = {
-  "payment_intent.succeeded": async (prisma, paymentIntent: Stripe.PaymentIntent) => {
-    if (paymentIntent.status === "succeeded") {
-      await prisma.request.update({
-        where: { id: paymentIntent.metadata.requestId },
-        data: { complete: true },
-      })
-    }
+  "account.updated": async (prisma, account: Stripe.Account) => {
+    await prisma.business.update({
+      where: { id: account.id },
+      data: { stripeMeta: account as any },
+    })
   },
 }
