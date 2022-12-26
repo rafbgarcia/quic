@@ -60,7 +60,7 @@ export default function RequestCode({ id }: Props) {
       </Head>
       <div className="p-6">
         <h1 className="text-xl">Código {requestCode.id}</h1>
-        <h3 className="text-md mb-5">{requestCode.request.business.name}</h3>
+        <h3 className="text-md mb-5 text-gray-500 font-medium">{requestCode.request.business.name}</h3>
 
         {requestCode.request.business.extraFee ? (
           <table className="min-w-full divide-y divide-gray-300 mb-10">
