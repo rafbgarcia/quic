@@ -29,7 +29,7 @@ export default function RequestSuccess() {
           >
             <InputNumber
               className="w-full"
-              type="number"
+              type="tel"
               maxLength={12}
               controls={false}
               placeholder="123456"
