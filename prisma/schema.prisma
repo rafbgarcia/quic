@@ -31,7 +31,7 @@ model Business {
   // @param id Stripe's Account ID
   id String @id @db.VarChar(50)
 
-  // name       String    @db.VarChar(30)
+  name       String    @db.VarChar(30)
   selectedAt DateTime  @default(now())
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt

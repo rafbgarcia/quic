@@ -1,4 +1,3 @@
-import { Prisma } from "@prisma/client"
 import { getLoginSession } from "../../../../lib/api/auth"
 import { selectedBusiness } from "../../../../lib/api/business"
 import { prisma } from "../../../../lib/api/db"
@@ -18,12 +17,13 @@ export default ServerlessFunctionHandler({
         default_currency: "BRL",
       })
 
-      const data: Prisma.BusinessUncheckedCreateInput = {
-        id: account.id,
-        adminId: admin.id,
-        // name: "Estabelecimento",
-      }
-      business = await prisma.business.create({ data })
+      business = await prisma.business.create({
+        data: {
+          id: account.id,
+          adminId: admin.id,
+          name: "Estabelecimento",
+        },
+      })
     }
 
     const stripeMeta: any = await stripe.accounts.retrieve(business.id)
