@@ -21,6 +21,12 @@ export default ServerlessFunctionHandler({
       })
     }
 
+    const stripeMeta: any = await stripe.accounts.retrieve(business.id)
+    prisma.business.update({
+      data: { stripeMeta: stripeMeta },
+      where: { id: business.id },
+    })
+
     const accountLink = await stripe.accountLinks.create({
       account: business.id,
       refresh_url: req.headers.referer!,
