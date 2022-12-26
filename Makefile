@@ -5,7 +5,7 @@ dbreset:
 	npx prisma db push --accept-data-loss --force-reset
 
 dbproxy:
-	pscale connect quic test --port 3309 --org quic
+	pscale connect quic main --port 3309 --org quic
 
 server:
 	npx next dev -p 8000
