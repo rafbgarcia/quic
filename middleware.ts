@@ -16,15 +16,17 @@ export const middleware: NextMiddleware = async function (req) {
   // IBAN country code
   // @see https://www.iban.com/country-codes
   const country = req.geo?.country || "BRA"
+  const url = req.nextUrl
+  console.log(country, req.geo)
 
   if (country !== "BRA") {
-    return NextResponse.redirect("/")
+    url.pathname = "/"
+    return NextResponse.redirect(url)
   }
 
   if (sessionExists(req)) {
     return NextResponse.next()
   } else {
-    const url = req.nextUrl
     url.pathname = "/login"
     return NextResponse.rewrite(url)
   }
