@@ -101,6 +101,8 @@ function createPaymentIntent(business: Business, amount: number, requestId: stri
     amount: amount + extraFee(business, amount),
     // statement_descriptor_suffix: "",
     currency: "brl",
+    payment_method_types: ["apple_pay", "google_pay", "card", "pix"],
+
     automatic_payment_methods: { enabled: true },
     on_behalf_of: business.id, // @see https://stripe.com/docs/connect/destination-charges#settlement-merchant
     application_fee_amount: quicFee(amount) + stripeFee(amount),
