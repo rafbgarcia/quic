@@ -62,25 +62,26 @@ export default function RequestCode({ id }: Props) {
       <div className="p-6">
         <h1 className="text-xl">{businessName}</h1>
 
-        <table className="min-w-full divide-y divide-gray-300 mb-10">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="py-3 pl-4 pr-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500 sm:pl-6">
-                Produto
-              </th>
-              <th className="px-3 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
-                Valor
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200 bg-white">
-            <tr>
-              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">Gasolina</td>
-              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                {intlCurrency(requestCode.request.amount! - extraFee(requestCode.request))}
-              </td>
-            </tr>
-            {requestCode.request.business.extraFee ? (
+        {requestCode.request.business.extraFee ? (
+          <table className="min-w-full divide-y divide-gray-300 mb-10">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="py-3 pl-4 pr-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500 sm:pl-6">
+                  Produto
+                </th>
+                <th className="px-3 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+                  Valor
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200 bg-white">
+              <tr>
+                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500"></td>
+                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                  {intlCurrency(requestCode.request.amount! - extraFee(requestCode.request))}
+                </td>
+              </tr>
+
               <tr>
                 <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                   <div className="flex items-center gap-1">
@@ -102,19 +103,20 @@ export default function RequestCode({ id }: Props) {
                   {intlCurrency(extraFee(requestCode.request))}
                 </td>
               </tr>
-            ) : null}
-          </tbody>
-          <tfoot className="bg-gray-50">
-            <tr>
-              <th className="py-3 pl-4 pr-3 text-left text-sm font-medium uppercase tracking-wide text-gray-500 sm:pl-6">
-                Total
-              </th>
-              <th className="px-3 py-3 text-left text-sm font-medium uppercase tracking-wide text-gray-500">
-                {intlCurrency(requestCode.request.amount!)}
-              </th>
-            </tr>
-          </tfoot>
-        </table>
+            </tbody>
+            <tfoot className="bg-gray-50">
+              <tr>
+                <th className="py-3 pl-4 pr-3 text-left text-sm font-medium uppercase tracking-wide text-gray-500 sm:pl-6">
+                  Total
+                </th>
+                <th className="px-3 py-3 text-left text-sm font-medium uppercase tracking-wide text-gray-500">
+                  {intlCurrency(requestCode.request.amount!)}
+                </th>
+              </tr>
+            </tfoot>
+          </table>
+        ) : null}
+
         <Ctx.Provider value={{ requestCode, paymentIntent }}>
           {((requestCode?.request?.requestedInfo as RequestType[]) || []).map((requestType) => (
             <RequestInfo key={requestType} type={requestType} />
