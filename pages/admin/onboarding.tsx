@@ -44,33 +44,34 @@ export default function Onboarding({ business }: Props) {
       </Head>
 
       <AdminLayout disableMenu pageTitle="Cadastre seu negócio">
-        <div className="mb-6">
-          <Steps currentStep={currentStep} />
+        <div>
+          <div className="mb-6">
+            <Steps currentStep={currentStep} />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card bordered={false}>
+              <Step step={currentStep} business={business} />
+            </Card>
+            <Alert
+              showIcon
+              description={
+                <>
+                  <p className="mb-2">
+                    Por motivos de segurança, utilizamos a Stripe
+                    <Popover content={StripeInfo} title="Sobre a Stripe">
+                      <InfoCircleOutlined className="ml-1 mr-2 relative -top-1 text-blue-700" />
+                    </Popover>
+                    para validar os dados do seu negócio e processar pagamentos.
+                  </p>
+                  <p className="mb-2">
+                    Você pode usar o Quic tanto como empresa quanto como profissional autonomo.
+                  </p>
+                </>
+              }
+              message="Saiba mais"
+            />
+          </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card bordered={false}>
-            <Step step={currentStep} business={business} />
-          </Card>
-          <Alert
-            showIcon
-            description={
-              <>
-                <p className="mb-2">
-                  Por motivos de segurança, utilizamos a Stripe
-                  <Popover content={StripeInfo} title="Sobre a Stripe">
-                    <InfoCircleOutlined className="ml-1 mr-2 relative -top-1 text-blue-700" />
-                  </Popover>
-                  para validar os dados do seu negócio e processar pagamentos.
-                </p>
-                <p className="mb-2">
-                  Você pode usar o Quic tanto como empresa quanto como profissional autonomo.
-                </p>
-              </>
-            }
-            message="Saiba mais"
-          />
-        </div>
-        <div className="mb-32" />
       </AdminLayout>
     </>
   )
@@ -137,7 +138,12 @@ function Step({ step, business }: { step: typeof steps[0]; business: Props["busi
           Agora é só aguardar a Stripe validar suas informações. Este processo pode levar até 3 dias úteis.
         </p>
         <p className="mb-2">Fique tranquilo, avisaremos por E-mail ou SMS sobre qualquer atualização.</p>
-        <p className="mb-2">Você já pode fechar esta aba.</p>
+        <p className="mb-5">Você já pode fechar esta aba.</p>
+        <Link href="/api/admin/stripe/onboarding">
+          <Button onClick={didClick} loading={clicked} type="primary">
+            Checar pendencias
+          </Button>
+        </Link>
       </>
     )
   }

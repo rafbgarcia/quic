@@ -32,6 +32,9 @@ const eventHandlers: { [key: string]: (prisma: typeof prismaClient, object: any)
         where: { id: paymentIntent.metadata.requestId },
         data: { complete: true },
       })
+      await prisma.requestCode.delete({
+        where: { requestId: paymentIntent.metadata.requestId },
+      })
     }
   },
 }

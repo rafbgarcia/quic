@@ -60,7 +60,8 @@ export default function RequestCode({ id }: Props) {
         <title>Pagar</title>
       </Head>
       <div className="p-6">
-        <h1 className="text-xl">{businessName}</h1>
+        <h1 className="text-xl">Código {requestCode.id}</h1>
+        <h3 className="text-md mb-5">{businessName}</h3>
 
         {requestCode.request.business.extraFee ? (
           <table className="min-w-full divide-y divide-gray-300 mb-10">
@@ -186,7 +187,10 @@ const CheckoutForm = () => {
     <form onSubmit={handleSubmit}>
       {errorMessage && <Alert className="mb-5" type="info" message={errorMessage} showIcon />}
       <div className="mb-5">
-        <PaymentElement onReady={() => setReady(true)} />
+        <PaymentElement
+          onReady={() => setReady(true)}
+          options={{ paymentMethodOrder: ["apple_pay", "google_pay", "card"] }}
+        />
       </div>
       <Button
         className="flex items-center justify-center gap-1"
