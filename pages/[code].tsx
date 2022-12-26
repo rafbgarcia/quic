@@ -60,30 +60,20 @@ export default function RequestCode({ id }: Props) {
       </Head>
       <div className="p-6">
         <h1 className="text-xl">Código {requestCode.id}</h1>
-        <h3 className="text-md mb-5 text-gray-500 font-medium">{requestCode.request.business.name}</h3>
+        <h3 className="text-md text-gray-500 font-medium">{requestCode.request.business.name}</h3>
 
         {requestCode.request.business.extraFee ? (
-          <table className="min-w-full divide-y divide-gray-300 mb-10">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="py-3 pl-4 pr-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500 sm:pl-6">
-                  Produto
-                </th>
-                <th className="px-3 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
-                  Valor
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200 bg-white">
-              <tr>
-                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500"></td>
-                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+          <table className="w-full text-left mt-5">
+            <tbody className="divide-y divide-gray-200">
+              <tr className="font-medium">
+                <td className="whitespace-nowrap text-sm text-gray-600">Subtotal</td>
+                <td className="whitespace-nowrap text-sm text-gray-600 text-right">
                   {intlCurrency(requestCode.request.amount! - extraFee(requestCode.request))}
                 </td>
               </tr>
 
               <tr>
-                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                <td className="whitespace-nowrap text-sm text-gray-500">
                   <div className="flex items-center gap-1">
                     Taxa do estabelecimento
                     <Popover
@@ -99,30 +89,28 @@ export default function RequestCode({ id }: Props) {
                     </Popover>
                   </div>
                 </td>
-                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                <td className="whitespace-nowrap text-sm text-gray-600 text-right">
                   {intlCurrency(extraFee(requestCode.request))}
                 </td>
               </tr>
-            </tbody>
-            <tfoot className="bg-gray-50">
               <tr>
-                <th className="py-3 pl-4 pr-3 text-left text-sm font-medium uppercase tracking-wide text-gray-500 sm:pl-6">
-                  Total
-                </th>
-                <th className="px-3 py-3 text-left text-sm font-medium uppercase tracking-wide text-gray-500">
+                <th className="text-sm font-medium text-gray-600">Total</th>
+                <th className="text-sm font-medium text-gray-600 text-right">
                   {intlCurrency(requestCode.request.amount!)}
                 </th>
               </tr>
-            </tfoot>
+            </tbody>
           </table>
         ) : null}
 
-        <Ctx.Provider value={{ requestCode, paymentIntent }}>
-          {((requestCode?.request?.requestedInfo as RequestType[]) || []).map((requestType) => (
-            <RequestInfo key={requestType} type={requestType} />
-          ))}
-          {!!requestCode.request.amount && <RequestPayment />}
-        </Ctx.Provider>
+        <div className="mt-5">
+          <Ctx.Provider value={{ requestCode, paymentIntent }}>
+            {((requestCode?.request?.requestedInfo as RequestType[]) || []).map((requestType) => (
+              <RequestInfo key={requestType} type={requestType} />
+            ))}
+            {!!requestCode.request.amount && <RequestPayment />}
+          </Ctx.Provider>
+        </div>
       </div>
     </>
   )
