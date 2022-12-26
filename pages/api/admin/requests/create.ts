@@ -102,7 +102,7 @@ function createPaymentIntent(business: Business, amount: number, requestId: stri
     // statement_descriptor_suffix: "",
     currency: "brl",
     automatic_payment_methods: { enabled: true },
-    // on_behalf_of: business.id, // @see https://stripe.com/docs/connect/destination-charges#settlement-merchant
+    on_behalf_of: business.id, // @see https://stripe.com/docs/connect/destination-charges#settlement-merchant
     application_fee_amount: quicFee(amount) + stripeFee(amount),
     transfer_data: { destination: business.id },
     metadata: { requestId },
