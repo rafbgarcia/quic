@@ -1,14 +1,15 @@
-import { LockClosedIcon } from "@heroicons/react/24/outline"
+import { InfoCircleOutlined } from "@ant-design/icons"
+import { LockClosedIcon, XCircleIcon } from "@heroicons/react/24/outline"
 import { RequestType } from "@prisma/client"
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js"
 import { loadStripe, StripeElementsOptions } from "@stripe/stripe-js"
-import { Alert, Button, Skeleton, Spin } from "antd"
+import { Alert, Button, Popover, Skeleton, Spin } from "antd"
 import { isBefore, parseISO } from "date-fns"
 import { GetServerSidePropsContext } from "next"
 import Head from "next/head"
 import { createContext, useContext, useState } from "react"
 import Stripe from "stripe"
-import { intlCurrency } from "../lib/amount"
+import { extraFee, intlCurrency } from "../lib/amount"
 import { RequestCodeResponse, useRequestCode } from "../lib/api"
 import { getDomain } from "../lib/api/req"
 import { ensureExhaustive } from "../lib/util"
@@ -36,9 +37,19 @@ export default function RequestCode({ id }: Props) {
 
   if (!requestCode || isBefore(expiresAt, new Date())) {
     return (
-      <div className="p-6">
-        <h1 className="text-2xl">Código inválido ou expirado</h1>
-      </div>
+      <>
+        <Head>
+          <title>Código inválido</title>
+        </Head>
+        <div className="flex items-center gap-2 flex-col mt-10">
+          <XCircleIcon className="w-20 text-red-800" />
+          <h1 className="text-2xl">Código inválido</h1>
+          <p className="mb-10">O código {id} não existe ou já expirou.</p>
+          <Button href="/requests" type="primary">
+            Digitar outro código
+          </Button>
+        </div>
+      </>
     )
   }
   const account = requestCode.request.business.stripeMeta as unknown as Stripe.Account
@@ -51,9 +62,63 @@ export default function RequestCode({ id }: Props) {
       </Head>
       <div className="p-6">
         <h1 className="text-xl">{businessName}</h1>
+
+        <table className="min-w-full divide-y divide-gray-300 mb-10">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="py-3 pl-4 pr-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500 sm:pl-6">
+                Produto
+              </th>
+              <th className="px-3 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+                Valor
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200 bg-white">
+            <tr>
+              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">Gasolina</td>
+              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                {intlCurrency(requestCode.request.amount! - extraFee(requestCode.request))}
+              </td>
+            </tr>
+            {requestCode.request.business.extraFee ? (
+              <tr>
+                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                  <div className="flex items-center gap-1">
+                    Taxa do estabelecimento
+                    <Popover
+                      content={
+                        <>
+                          <p>Esta taxa não é do Quic.</p>
+                          <p>O estabelecimento optou por dividir</p>
+                          <p>a taxa da forma de pagamento.</p>
+                        </>
+                      }
+                    >
+                      <InfoCircleOutlined />
+                    </Popover>
+                  </div>
+                </td>
+                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                  {intlCurrency(extraFee(requestCode.request))}
+                </td>
+              </tr>
+            ) : null}
+          </tbody>
+          <tfoot className="bg-gray-50">
+            <tr>
+              <th className="py-3 pl-4 pr-3 text-left text-sm font-medium uppercase tracking-wide text-gray-500 sm:pl-6">
+                Total
+              </th>
+              <th className="px-3 py-3 text-left text-sm font-medium uppercase tracking-wide text-gray-500">
+                {intlCurrency(requestCode.request.amount!)}
+              </th>
+            </tr>
+          </tfoot>
+        </table>
         <Ctx.Provider value={{ requestCode, paymentIntent }}>
           {((requestCode?.request?.requestedInfo as RequestType[]) || []).map((requestType) => (
-            <RequestInfo type={requestType} />
+            <RequestInfo key={requestType} type={requestType} />
           ))}
           {!!requestCode.request.amount && <RequestPayment />}
         </Ctx.Provider>
@@ -106,7 +171,7 @@ const CheckoutForm = () => {
     const { error } = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        return_url: `${getDomain()}/pay/success`,
+        return_url: `${getDomain()}/requests/success`,
       },
     })
 

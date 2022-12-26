@@ -29,3 +29,25 @@ export const middleware: NextMiddleware = async function (req) {
     return NextResponse.rewrite(url)
   }
 }
+
+/*
+const netStripeFee = (amount: number) => {
+  const customerPays = amount + (amount * 1.99) / 100
+  const stripeFee = (customerPays * 3.99) / 100 + 0.39
+  const businessReceivesAmount = customerPays - stripeFee
+  const netFee = (1 - businessReceivesAmount / amount) * 100
+  return [netFee, businessReceivesAmount]
+}
+
+console.log(netStripeFee(10))
+console.log(netStripeFee(20))
+console.log(netStripeFee(30))
+console.log(netStripeFee(40))
+console.log(netStripeFee(50))
+console.log(netStripeFee(100))
+console.log(netStripeFee(200))
+console.log(netStripeFee(300))
+console.log(netStripeFee(400))
+console.log(netStripeFee(500))
+console.log(netStripeFee(1000))
+*/

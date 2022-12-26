@@ -7,10 +7,6 @@
  * AntDesign overrides
  */
 
-.ant-btn {
-  display: inline-flex;
-  align-items: center;
-}
 
 /**
  * Tailwind custom preflight to avoid conflict with antdesign

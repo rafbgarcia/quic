@@ -8,7 +8,7 @@ import { SquaresPlusIcon } from "@heroicons/react/24/outline"
 import { ExpiresIn, RequestType } from "@prisma/client"
 import { Button, Checkbox, Form, InputNumber, message, Modal, Select, Spin } from "antd"
 import classNames from "classnames"
-import { formatDistanceToNowStrict, isBefore, parseISO } from "date-fns"
+import { format, formatDistanceToNowStrict, isBefore, parseISO } from "date-fns"
 import ptBR from "date-fns/locale/pt-BR"
 import map from "lodash/map"
 import { GetServerSidePropsContext } from "next"
@@ -129,10 +129,11 @@ function Requests({ requests, selectedId }: { requests: RequestsResponse; select
             <table className="text-gray-900" width="100%">
               <tbody>
                 <tr>
-                  <td className="font-medium w-[80px]">{request.requestCodeRef}</td>
-                  <td>
+                  <td className="font-medium w-[30%]">{request.requestCodeRef}</td>
+                  <td className="w-[50%]">
                     <RequestStatus request={request} />
                   </td>
+                  <td>{format(parseISO(request.createdAt as any), `HH:mm'h'`)}</td>
                 </tr>
               </tbody>
             </table>
@@ -234,7 +235,6 @@ function NewRequestModal({ show, setShow }: any) {
         <Form
           form={form}
           onFinish={onFinish}
-          name="control-hooks"
           layout="vertical"
           requiredMark
           initialValues={{ requestPayment: true, expiresIn: ExpiresIn.minutes_15 }}
@@ -277,6 +277,7 @@ function NewRequestModal({ show, setShow }: any) {
                   maxLength={9}
                   addonBefore="R$"
                   placeholder="49,90"
+                  controls={false}
                   formatter={(val) => formatCurrency(val as unknown as string)}
                 />
               </Form.Item>

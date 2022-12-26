@@ -12,6 +12,7 @@ datasource db {
   relationMode = "prisma"
 }
 
+// Prisma only generate types for what's being used.
 model unused_table_to_create_enum_types {
   id          String       @id
   requestType RequestType?
@@ -35,8 +36,9 @@ model Business {
   updatedAt  DateTime  @updatedAt
   requests   Request[]
   admin      Admin     @relation(fields: [adminId], references: [id])
-  adminId    String
+  adminId    String    @db.VarChar(70)
   stripeMeta Json?
+  extraFee   Int?      @db.UnsignedSmallInt
 
   @@index([adminId])
 }

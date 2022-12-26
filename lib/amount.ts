@@ -16,3 +16,11 @@ export function parseAmount(amount: string) {
 export function intlCurrency(amount: number) {
   return Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(amount / 100)
 }
+
+export function extraFee(request: any) {
+  if (!request.business.extraFee) {
+    return 0
+  }
+  const feeFloat = request.business.extraFee / 100
+  return Math.ceil((request.amount * feeFloat) / 100)
+}

@@ -10,12 +10,6 @@ import { ServerlessFunctionHandler } from "../../../../lib/api/serverlessHandler
 import { stripe } from "../../../../lib/api/stripe"
 import { ensureExhaustive } from "../../../../lib/util"
 
-// 100 reais
-// cliente paga taxa de 1.99% = R$ 101.99
-// Taxa Stripe = R$ 4.459401
-// posto recebe: 101.99 * (1-0.0399) - .39 = 97.530599
-// Taxa Quic: 0.1% do saldo (97.530599) = R$ 0.10
-
 const makeCode = customAlphabet("0123456789", 6)
 
 /**
@@ -34,6 +28,13 @@ function quicFee(amount: number) {
 function stripeFee(amount: number) {
   // Stripe fee is 3.99% + 0.39
   return Math.ceil(amount * (3.99 / 100)) + 39
+}
+
+function extraFee(business: Business, amount: number) {
+  if (!business.extraFee || business.extraFee === 0) {
+    return 0
+  }
+  return Math.ceil((amount * (business.extraFee / 100)) / 100)
 }
 
 function makeExpiresAt(expiresIn: ExpiresIn): Date {
@@ -66,10 +67,12 @@ export default ServerlessFunctionHandler({
 
     const newCode = makeCode()
     const requestId = cuid()
+    console.log("fee", extraFee(business, amount))
+
     const request = await prisma.request.create({
       data: {
         id: requestId,
-        amount: amount,
+        amount: amount + extraFee(business, amount),
         requestedInfo: requestedInfo,
         businessId: business.id,
         stripePaymentIntentId: requestPayment
@@ -95,7 +98,7 @@ export default ServerlessFunctionHandler({
 
 function createPaymentIntent(business: Business, amount: number, requestId: string) {
   return stripe.paymentIntents.create({
-    amount,
+    amount: amount + extraFee(business, amount),
     // statement_descriptor_suffix: "",
     currency: "brl",
     automatic_payment_methods: { enabled: true },
