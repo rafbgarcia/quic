@@ -29,6 +29,7 @@ export default function RequestSuccess() {
           >
             <InputNumber
               className="w-full"
+              type="number"
               maxLength={12}
               controls={false}
               placeholder="123456"

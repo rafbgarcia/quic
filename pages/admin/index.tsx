@@ -130,10 +130,10 @@ function Requests({ requests, selectedId }: { requests: RequestsResponse; select
               <tbody>
                 <tr>
                   <td className="font-medium w-[30%]">{request.requestCodeRef}</td>
+                  <td>{format(parseISO(request.createdAt as any), `HH:mm'h'`)}</td>
                   <td className="w-[50%]">
                     <RequestStatus request={request} />
                   </td>
-                  <td>{format(parseISO(request.createdAt as any), `HH:mm'h'`)}</td>
                 </tr>
               </tbody>
             </table>
