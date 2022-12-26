@@ -52,7 +52,6 @@ export default function RequestCode({ id }: Props) {
     )
   }
   const account = requestCode.request.business.stripeMeta as unknown as Stripe.Account
-  const businessName = account.company?.name || account.business_profile?.name || ""
 
   return (
     <>
@@ -61,7 +60,7 @@ export default function RequestCode({ id }: Props) {
       </Head>
       <div className="p-6">
         <h1 className="text-xl">Código {requestCode.id}</h1>
-        <h3 className="text-md mb-5">{businessName}</h3>
+        <h3 className="text-md mb-5">{requestCode.request.business.name}</h3>
 
         {requestCode.request.business.extraFee ? (
           <table className="min-w-full divide-y divide-gray-300 mb-10">
