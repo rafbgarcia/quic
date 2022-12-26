@@ -21,7 +21,7 @@ export default ServerlessFunctionHandler({
       const data: Prisma.BusinessUncheckedCreateInput = {
         id: account.id,
         adminId: admin.id,
-        name: "Estabelecimento",
+        // name: "Estabelecimento",
       }
       business = await prisma.business.create({ data })
     }
