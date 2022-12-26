@@ -12,7 +12,6 @@ import Stripe from "stripe"
 import { extraFee, intlCurrency } from "../lib/amount"
 import { RequestCodeResponse, useRequestCode } from "../lib/api"
 import { getDomain } from "../lib/api/req"
-import { ensureExhaustive } from "../lib/util"
 
 type Props = Awaited<ReturnType<typeof getServerSideProps>>["props"]
 
@@ -147,7 +146,7 @@ function RequestInfo({ type }: { type: RequestType }) {
   const { paymentIntent } = useContext(Ctx)
 
   return <>Em breve</>
-  ensureExhaustive(type)
+  // ensureExhaustive(type)
 }
 
 const CheckoutForm = () => {
