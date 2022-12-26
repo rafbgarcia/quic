@@ -56,7 +56,7 @@ export default function RequestCode({ id }: Props) {
   return (
     <>
       <Head>
-        <title>Pagar</title>
+        <title>Código {requestCode.id}</title>
       </Head>
       <div className="p-6">
         <h1 className="text-xl">Código {requestCode.id}</h1>
