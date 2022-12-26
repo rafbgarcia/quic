@@ -1,6 +1,6 @@
 import { Dialog, Menu, Transition } from "@headlessui/react"
-import { ChevronUpDownIcon, DeviceTabletIcon, PlusIcon } from "@heroicons/react/20/solid"
-import { Bars3Icon, CalendarIcon, CogIcon, HomeIcon, XMarkIcon } from "@heroicons/react/24/outline"
+import { ChevronUpDownIcon, PlusIcon } from "@heroicons/react/20/solid"
+import { Bars3Icon, HomeIcon, XMarkIcon } from "@heroicons/react/24/outline"
 import { message } from "antd"
 import classNames from "classnames"
 import Link from "next/link"
@@ -9,17 +9,13 @@ import { Fragment, useEffect, useState } from "react"
 import { Avatar } from "./Avatar"
 import { Logo } from "./Logo"
 
-const user = {
-  name: "Tom Cook",
-  imageUrl:
-    "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-}
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: HomeIcon, current: true },
-  { name: "Calendar", href: "#", icon: CalendarIcon, current: false },
-  { name: "Dispositivos", href: "#", icon: DeviceTabletIcon, current: false },
+  // { name: "Solicitações", href: "/admin/requests", icon: QueueListIcon, current: false },
+  // { name: "Dispositivos", href: "#", icon: DeviceTabletIcon, current: false },
 ]
-const secondaryNavigation = [{ name: "Configurações", href: "#", icon: CogIcon }]
+// const secondaryNavigation = [{ name: "Configurações", href: "#", icon: CogIcon }]
+const secondaryNavigation = []
 
 export default function AdminLayout({ children }: any) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -34,14 +30,6 @@ export default function AdminLayout({ children }: any) {
   return (
     <>
       {contextHolder}
-      {/*
-        This example requires updating your template:
-
-        ```
-        <html class="h-full bg-white">
-        <body class="h-full overflow-hidden">
-        ```
-      */}
       <div className="h-[100vh] bg-white">
         <div className="flex h-full">
           <Transition.Root show={sidebarOpen} as={Fragment}>

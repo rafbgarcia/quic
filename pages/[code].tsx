@@ -96,7 +96,7 @@ export default function RequestCode({ id }: Props) {
               <tr>
                 <th className="text-sm font-medium text-gray-600">Total</th>
                 <th className="text-sm font-medium text-gray-600 text-right">
-                  {intlCurrency(requestCode.request.amount!)}
+                  {intlCurrency(requestCode.request.amount! + extraFee(requestCode.request))}
                 </th>
               </tr>
             </tbody>
