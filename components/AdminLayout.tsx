@@ -1,6 +1,6 @@
 import { Dialog, Menu, Transition } from "@headlessui/react"
 import { ChevronUpDownIcon, PlusIcon } from "@heroicons/react/20/solid"
-import { Bars3Icon, HomeIcon, XMarkIcon } from "@heroicons/react/24/outline"
+import { Bars3Icon, QueueListIcon, XMarkIcon } from "@heroicons/react/24/outline"
 import { message } from "antd"
 import classNames from "classnames"
 import Link from "next/link"
@@ -10,9 +10,8 @@ import { Avatar } from "./Avatar"
 import { Logo } from "./Logo"
 
 const navigation = [
-  { name: "Dashboard", href: "/admin", icon: HomeIcon, current: true },
-  // { name: "Solicitações", href: "/admin/requests", icon: QueueListIcon, current: false },
-  // { name: "Dispositivos", href: "#", icon: DeviceTabletIcon, current: false },
+  { name: "Códigos avulsos", href: "/admin", icon: QueueListIcon },
+  // { name: "Códigos permanentes", href: "/admin/codes/fixed", icon: ListBulletIcon },
 ]
 
 export default function AdminLayout({ children }: any) {
@@ -128,6 +127,7 @@ export default function AdminLayout({ children }: any) {
 }
 
 function Sidebar() {
+  const router = useRouter()
   return (
     <>
       <div className="flex flex-shrink-0 items-center px-4">
@@ -191,19 +191,16 @@ function Sidebar() {
             <a
               key={item.name}
               href={item.href}
-              className={classNames(
-                item.current
-                  ? "bg-gray-200 text-gray-900"
-                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
-                "group flex items-center px-2 py-2 text-base font-medium rounded-md"
-              )}
-              aria-current={item.current ? "page" : undefined}
+              className={classNames("group flex items-center px-2 py-2 text-base font-medium rounded-md", {
+                "bg-gray-200 text-gray-900": item.href === router.pathname,
+                "text-gray-600 hover:bg-gray-50 hover:text-gray-900": item.href !== router.pathname,
+              })}
             >
               <item.icon
-                className={classNames(
-                  item.current ? "text-gray-500" : "text-gray-400 group-hover:text-gray-500",
-                  "mr-4 h-6 w-6"
-                )}
+                className={classNames("mr-4 h-6 w-6", {
+                  "text-gray-500": item.href === router.pathname,
+                  "text-gray-400 group-hover:text-gray-500": item.href !== router.pathname,
+                })}
                 aria-hidden="true"
               />
               {item.name}

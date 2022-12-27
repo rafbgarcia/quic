@@ -62,7 +62,7 @@ export default function Dashboard(props: Props) {
 
         <aside className="w-96 flex-shrink-0 border-r border-gray-200 order-first flex flex-col">
           <div className="px-6 pt-6 pb-4 flex items-center justify-between">
-            <h2 className="text-lg font-medium text-gray-900">Solicitações</h2>
+            <h2 className="text-lg font-medium text-gray-900">Códigos</h2>
             <Button
               className="flex items-center justify-center"
               onClick={() => setShowNewRequestModal(true)}
@@ -160,7 +160,7 @@ function RequestDetails({ request }: { request: RequestsResponse[0] }) {
     <>
       <div className="mx-auto max-w-5xl px-8">
         <div className="mt-6 min-w-0 flex-1">
-          <h3 className="truncate text-2xl font-bold text-gray-900">Solicitação {request.requestCodeRef}</h3>
+          <h3 className="truncate text-2xl font-bold text-gray-900">Código {request.requestCodeRef}</h3>
         </div>
       </div>
 
@@ -321,11 +321,11 @@ function EmptyState({ setShowNewRequestModal }: { setShowNewRequestModal: (val: 
   return (
     <div className="text-center">
       <SquaresPlusIcon className="mx-auto h-12 w-12 text-gray-400" />
-      <h3 className="mt-2 text-sm font-medium text-gray-900">Nenhuma solicitação</h3>
-      <p className="mt-1 text-sm text-gray-500">Comece criando sua primeira solitição.</p>
+      <h3 className="mt-2 text-sm font-medium text-gray-900">Nenhum código</h3>
+      <p className="mt-1 text-sm text-gray-500">Comece criando seu primeiro código.</p>
       <div className="mt-6">
         <Button onClick={() => setShowNewRequestModal(true)} icon={<PlusOutlined />} type="primary">
-          Nova Solitação
+          Novo Código
         </Button>
       </div>
     </div>
@@ -335,7 +335,7 @@ function EmptyState({ setShowNewRequestModal }: { setShowNewRequestModal: (val: 
 function RequestEmptyState() {
   return (
     <div className="text-center">
-      <p className="mt-6 italic text-sm text-gray-500">Os detalhes da sua solicitação aparecerão aqui</p>
+      <p className="mt-6 italic text-sm text-gray-500">Os detalhes do código aparecerão aqui</p>
     </div>
   )
 }
