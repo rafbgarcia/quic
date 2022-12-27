@@ -151,7 +151,7 @@ const CheckoutForm = () => {
     return <Spin size="large" />
   }
 
-  const amount = intlCurrency(requestCode?.request.amount!)
+  const amount = intlCurrency(requestCode?.request.amount! + extraFee(requestCode?.request))
 
   const handleSubmit = async (e: any) => {
     e.preventDefault()
@@ -189,7 +189,7 @@ const CheckoutForm = () => {
         disabled={!stripe || !ready}
         icon={<LockClosedIcon className="w-4" />}
       >
-        Pagar {amount + extraFee(requestCode?.request)}
+        Pagar {amount}
       </Button>
 
       <div className="mt-5 text-center">
