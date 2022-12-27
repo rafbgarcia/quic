@@ -14,8 +14,6 @@ const navigation = [
   // { name: "Solicitações", href: "/admin/requests", icon: QueueListIcon, current: false },
   // { name: "Dispositivos", href: "#", icon: DeviceTabletIcon, current: false },
 ]
-// const secondaryNavigation = [{ name: "Configurações", href: "#", icon: CogIcon }]
-const secondaryNavigation = []
 
 export default function AdminLayout({ children }: any) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -206,22 +204,6 @@ function Sidebar() {
                   item.current ? "text-gray-500" : "text-gray-400 group-hover:text-gray-500",
                   "mr-4 h-6 w-6"
                 )}
-                aria-hidden="true"
-              />
-              {item.name}
-            </a>
-          ))}
-        </div>
-        <hr className="my-5 border-t border-gray-200" aria-hidden="true" />
-        <div className="space-y-1 px-2">
-          {secondaryNavigation.map((item) => (
-            <a
-              key={item.name}
-              href={item.href}
-              className="group flex items-center rounded-md px-2 py-2 text-base font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-            >
-              <item.icon
-                className="mr-4 h-6 w-6 flex-shrink-0 text-gray-400 group-hover:text-gray-500"
                 aria-hidden="true"
               />
               {item.name}
