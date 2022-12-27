@@ -189,7 +189,7 @@ const CheckoutForm = () => {
         disabled={!stripe || !ready}
         icon={<LockClosedIcon className="w-4" />}
       >
-        Pagar {amount}
+        Pagar {amount + extraFee(requestCode?.request)}
       </Button>
 
       <div className="mt-5 text-center">
