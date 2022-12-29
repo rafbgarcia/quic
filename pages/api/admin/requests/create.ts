@@ -12,17 +12,8 @@ import { ensureExhaustive } from "../../../../lib/util"
 
 const makeCode = customAlphabet("0123456789", 6)
 
-/**
- * e.g.
- * amount = 12345
- * fee = amount * 0.1 / 100 = 12.345
- * return is 13 (which means 13 cents)
- *
- * @param amount Integer e.g. R$ 123,45 is passed as 12345
- * @returns fee Integer
- */
 function quicFee(amount: number) {
-  return Math.ceil((amount * 0.1) / 100)
+  return Math.max(10, Math.ceil((amount * 0.1) / 100))
 }
 
 function stripeFee(amount: number) {

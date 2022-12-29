@@ -11,32 +11,15 @@ import classNames from "classnames"
 import { format, formatDistanceToNowStrict, isBefore, parseISO } from "date-fns"
 import ptBR from "date-fns/locale/pt-BR"
 import map from "lodash/map"
-import { GetServerSidePropsContext } from "next"
 import Head from "next/head"
 import { useRouter } from "next/router"
 import { useState } from "react"
 import AdminLayout from "../../components/AdminLayout"
 import { extraFee, intlCurrency, MAX_AMOUNT, MIN_AMOUNT } from "../../lib/amount"
 import { RequestsResponse, useCreateRequest, useRequests } from "../../lib/api"
-import { getLoginSession } from "../../lib/api/auth"
-import { selectedBusiness } from "../../lib/api/business"
 import { EXPIRES_IN_MAP, REQUEST_TYPE_MAP } from "../../lib/enums"
-import { makeSerializable } from "../../lib/serializable"
 
-type Props = Awaited<ReturnType<typeof getServerSideProps>>["props"]
-
-export async function getServerSideProps({ req }: GetServerSidePropsContext) {
-  const admin = (await getLoginSession(req))!.admin
-  const business = (await selectedBusiness(admin))!
-
-  return {
-    props: {
-      business: makeSerializable(business)!,
-    },
-  }
-}
-
-export default function Dashboard(props: Props) {
+export default function Dashboard() {
   const router = useRouter()
   const { data: requests } = useRequests()
   const [showNewRequestModal, setShowNewRequestModal] = useState(false)

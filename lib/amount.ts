@@ -1,5 +1,5 @@
 export const MIN_AMOUNT = 1_00
-export const MAX_AMOUNT = 999999_99
+export const MAX_AMOUNT = 25000_00
 const MIN_AMOUNT_MSG = intlCurrency(MIN_AMOUNT)
 const MAX_AMOUNT_MSG = intlCurrency(MAX_AMOUNT)
 
