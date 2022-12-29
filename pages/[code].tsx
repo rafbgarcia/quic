@@ -5,24 +5,18 @@ import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-
 import { loadStripe, StripeElementsOptions } from "@stripe/stripe-js"
 import { Alert, Button, Popover, Skeleton, Spin, Typography } from "antd"
 import { isBefore, parseISO } from "date-fns"
-import { GetServerSidePropsContext } from "next"
 import Head from "next/head"
+import { useRouter } from "next/router"
 import { createContext, useContext, useState } from "react"
-import Stripe from "stripe"
 import { extraFee, intlCurrency } from "../lib/amount"
 import { RequestCodeResponse, useRequestCode } from "../lib/api"
 import { getDomain } from "../lib/api/req"
 
-type Props = Awaited<ReturnType<typeof getServerSideProps>>["props"]
-
 const Ctx = createContext<RequestCodeResponse>({ requestCode: null, paymentIntent: null })
 
-export async function getServerSideProps({ query }: GetServerSidePropsContext) {
-  const id = query.code as string
-  return { props: { id } }
-}
-
-export default function RequestCode({ id }: Props) {
+export default function RequestCode() {
+  const router = useRouter()
+  const id = router.query.code as string
   const { data } = useRequestCode(id)
   if (!data)
     return (
@@ -51,7 +45,6 @@ export default function RequestCode({ id }: Props) {
       </>
     )
   }
-  const account = requestCode.request.business.stripeMeta as unknown as Stripe.Account
 
   return (
     <>
@@ -81,7 +74,7 @@ export default function RequestCode({ id }: Props) {
                         <>
                           <p>Esta taxa não é do Quic.</p>
                           <p>O estabelecimento optou por dividir</p>
-                          <p>a taxa da forma de pagamento.</p>
+                          <p>a taxa do método de pagamento.</p>
                         </>
                       }
                     >
