@@ -1,7 +1,6 @@
-import { Business, Customer, Request, RequestCode } from "@prisma/client"
+import { Business, Code, Completion, Prisma, Request } from "@prisma/client"
 import { message } from "antd"
-import Stripe from "stripe"
-import useSWR from "swr"
+import useSWRImmutable from "swr/immutable"
 import useSWRMutation from "swr/mutation"
 
 /**
@@ -9,60 +8,61 @@ import useSWRMutation from "swr/mutation"
  */
 
 export type RequestsResponse = (Request & {
-  requestCode: RequestCode | null
-  customer: Customer | null
+  completions: Completion[]
 })[]
 
 export function useRequests() {
-  return useSWR<RequestsResponse>("/api/admin/requests", get, {
+  return useSWRImmutable<RequestsResponse>(`/api/admin/requests`, get, {
+    refreshInterval: 10000,
     keepPreviousData: true,
   })
 }
 
 export function useCreateRequest() {
-  return useSWRMutation("/api/admin/requests", post("/api/admin/requests/create"))
+  return useSWRMutation("/api/admin/requests", swrPost("/api/admin/requests/create"))
 }
 
 /**
- * RequestCode API
+ * Code API
  */
 
-export type RequestCodeResponse = {
-  requestCode:
-    | (RequestCode & {
-        request: Request & {
-          business: Business
-        }
-      })
-    | null
-  paymentIntent: null | Stripe.PaymentIntent
-}
+export type CodeResponse =
+  | (Code & {
+      request: Request & {
+        business: Business
+      }
+    })
+  | null
 
 export function useRequestCode(id: string) {
-  return useSWR<RequestCodeResponse>(`/api/requestCodes/${id}`, get)
+  return useSWRImmutable<CodeResponse>(`/api/${id}`, get)
 }
 
 /**
  * Helpers
  */
 
-function post(url: string) {
-  return async function (_key: string, { arg }: any) {
-    return fetch(url, {
-      method: "POST",
-      body: JSON.stringify(arg),
-      headers: { "Content-Type": "application/json" },
-    })
-      .then((res) => res.json())
-      .catch((e) => message.info(e.message))
-  }
+export function post(url: string, data: Prisma.JsonValue | undefined = undefined) {
+  return fetch(url, {
+    method: "POST",
+    body: JSON.stringify(data),
+    headers: { "Content-Type": "application/json" },
+  })
+    .then((res) => res.json())
+    .catch((e) => message.info(e.message))
 }
 
-function get(...args: [any]) {
+export function get(...args: [any]) {
   return fetch(...args, {
     method: "GET",
     headers: { "Content-Type": "application/json" },
   })
     .then((res) => res.json())
     .catch((e) => message.info(e.message))
+}
+
+function swrPost(url: string) {
+  return async function (_key: string, { arg }: any) {
+    return post(url, arg)
+  }
 }

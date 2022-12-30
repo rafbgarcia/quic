@@ -12,10 +12,20 @@ datasource db {
   relationMode = "prisma"
 }
 
-// Prisma only generate types for what's being used.
-model unused_table_to_create_enum_types {
-  id          String       @id
-  requestType RequestType?
+enum ExpiresIn {
+  minutes_15
+  hours_1
+  hours_24
+  never
+}
+
+enum RequestType {
+  payment
+  fullName
+  shippingAddress
+  phoneNumber
+  id
+  email
 }
 
 model Admin {
@@ -28,9 +38,7 @@ model Admin {
 }
 
 model Business {
-  // @param id Stripe's Account ID
-  id String @id @db.VarChar(50)
-
+  id         String    @id @db.VarChar(50)
   name       String    @db.VarChar(30)
   selectedAt DateTime  @default(now())
   createdAt  DateTime  @default(now())
@@ -39,79 +47,66 @@ model Business {
   admin      Admin     @relation(fields: [adminId], references: [id])
   adminId    String    @db.VarChar(70)
   stripeMeta Json?
-  extraFee   Int?      @db.UnsignedSmallInt
 
   @@index([adminId])
 }
 
-enum ExpiresIn {
-  minutes_15
-  hours_1
-  hours_24
-}
-
-enum RequestType {
-  fullName
-  shippingAddress
-  phoneNumber
-  id
-  email
-}
-
 model Request {
-  id                   String       @id @default(cuid()) @db.VarChar(30)
-  business             Business     @relation(fields: [businessId], references: [id])
-  businessId           String       @db.VarChar(50)
-  requestCode          RequestCode?
-  customer             Customer?    @relation(fields: [customerId], references: [id])
-  customerId           String?      @db.VarChar(50)
-  createdAt            DateTime     @default(now())
-  updatedAt            DateTime     @updatedAt
-  amount               Int?         @db.UnsignedMediumInt
-  extraFee             Int?         @db.UnsignedSmallInt
-  requestCodeExpiresIn ExpiresIn
-  complete             Boolean      @default(false)
-
-  // There's a PaymentIntent if and only if there's an amount.
-  stripePaymentIntentId String? @db.VarChar(50)
-
-  // @param requestedInfo RequestType[]
-  requestedInfo Json?
-
-  // @param requestCodeRef keep a reference of the code used to access this request.
-  // RequestCode's are deleted when expired, hence we keep this reference.
-  requestCodeRef String @db.VarChar(12)
+  id              String       @id @default(cuid()) @db.VarChar(30)
+  business        Business     @relation(fields: [businessId], references: [id])
+  businessId      String       @db.VarChar(50)
+  completions     Completion[]
+  amount          Int?         @db.UnsignedMediumInt
+  extraFeePercent Int?         @db.UnsignedSmallInt
+  expiresIn       ExpiresIn
+  types           Json
+  code            String       @db.VarChar(12)
+  createdAt       DateTime     @default(now())
+  codeRef         Code?
 
   @@index([businessId])
-  @@index([customerId])
 }
 
-model RequestCode {
-  // @param `id` is the code customers input to access the request.
-  // It is variable size for different use cases.
-  // For example:
-  // . Non-profits can have a fixed code to receive donations.
-  // . Pharmacies can create ad hoc codes to receive payments with customer information such as shipping address.
-  id String @id @db.VarChar(12)
+model Completion {
+  id              String   @id @default(cuid()) @db.VarChar(30)
+  request         Request  @relation(fields: [requestId], references: [id])
+  requestId       String   @db.VarChar(30)
+  createdAt       DateTime @default(now())
+  paymentIntentId String?  @db.VarChar(50)
+  amountReceived  Int?     @db.UnsignedMediumInt
 
-  createdAt DateTime @default(now())
-  expiresAt DateTime
-  request   Request  @relation(fields: [requestId], references: [id])
-  requestId String   @unique
+  @@index([requestId])
+}
+
+model Code {
+  id        String    @id @db.VarChar(12)
+  createdAt DateTime  @default(now())
+  expiresAt DateTime?
+  request   Request   @relation(fields: [requestId], references: [id])
+  requestId String    @unique
 }
 
 model Customer {
-  // `id` is the Stripe's Customer ID
-  id           String    @id @db.VarChar(50)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  documentId   String?   @db.VarChar(30)
-  email        String?   @db.VarChar(100)
-  firstName    String?   @db.VarChar(30)
-  lastName     String?   @db.VarChar(30)
-  phoneNumber  String?   @db.VarChar(15)
-  zip          String?   @db.VarChar(12)
-  streetNumber String?   @db.VarChar(12)
-  complement   String?   @db.VarChar(50)
-  requests     Request[]
+  id           String   @id @db.VarChar(50)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  documentId   String?  @db.VarChar(30)
+  email        String?  @db.VarChar(100)
+  firstName    String?  @db.VarChar(30)
+  lastName     String?  @db.VarChar(30)
+  phoneNumber  String?  @db.VarChar(15)
+  zip          String?  @db.VarChar(12)
+  streetNumber String?  @db.VarChar(12)
+  complement   String?  @db.VarChar(50)
+}
+
+/////////////////////////////////////////////////////////////
+// Generate unused Enums.
+//
+// Prisma only generates types if it's being used by a table.
+//
+/////////////////////////////////////////////////////////////
+model unused_table_to_create_enum_types {
+  id          String       @id
+  requestType RequestType?
 }

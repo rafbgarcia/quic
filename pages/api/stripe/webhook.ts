@@ -28,13 +28,21 @@ export default ServerlessFunctionHandler({
 const eventHandlers: { [key: string]: (prisma: typeof prismaClient, object: any) => void } = {
   "payment_intent.succeeded": async (prisma, paymentIntent: Stripe.PaymentIntent) => {
     if (paymentIntent.status === "succeeded") {
-      await prisma.request.update({
-        where: { id: paymentIntent.metadata.requestId },
-        data: { complete: true },
-      })
-      await prisma.requestCode.delete({
-        where: { requestId: paymentIntent.metadata.requestId },
-      })
+      const promises: any = [
+        prisma.completion.create({
+          data: {
+            requestId: paymentIntent.metadata.requestId,
+            paymentIntentId: paymentIntent.id,
+            amountReceived: paymentIntent.amount_received,
+          },
+        }),
+      ]
+
+      if (paymentIntent.metadata.shouldDelete === "yes") {
+        promises.push(prisma.code.delete({ where: { id: paymentIntent.metadata.code } }))
+      }
+
+      await Promise.all(promises)
     }
   },
 }

@@ -5,18 +5,20 @@ import {
   PlusOutlined,
 } from "@ant-design/icons"
 import { SquaresPlusIcon } from "@heroicons/react/24/outline"
-import { ExpiresIn, RequestType } from "@prisma/client"
-import { Button, Checkbox, Form, InputNumber, message, Modal, Select, Spin } from "antd"
+import { Completion, ExpiresIn, RequestType } from "@prisma/client"
+import { Button, Checkbox, Form, message, Modal, Select, Spin, Table } from "antd"
 import classNames from "classnames"
-import { format, formatDistanceToNowStrict, isBefore, parseISO } from "date-fns"
+import { formatDistanceToNowStrict, formatRelative, parseISO } from "date-fns"
 import ptBR from "date-fns/locale/pt-BR"
 import map from "lodash/map"
 import Head from "next/head"
 import { useRouter } from "next/router"
 import { useState } from "react"
 import AdminLayout from "../../components/AdminLayout"
-import { extraFee, intlCurrency, MAX_AMOUNT, MIN_AMOUNT } from "../../lib/amount"
+import { CurrencyInput } from "../../components/CurrencyInput"
+import { intlCurrency } from "../../lib/amount"
 import { RequestsResponse, useCreateRequest, useRequests } from "../../lib/api"
+import { RequestModule } from "../../lib/api/RequestModule"
 import { EXPIRES_IN_MAP, REQUEST_TYPE_MAP } from "../../lib/enums"
 
 export default function Dashboard() {
@@ -71,14 +73,22 @@ export default function Dashboard() {
 }
 
 function RequestStatus({ request }: { request: RequestsResponse[0] }) {
-  if (request.complete) {
+  if (request.completions.length > 0) {
     return (
       <span className="flex items-center gap-1 font-medium">
         <CheckCircleOutlined className="text-green-700" /> Completo
       </span>
     )
   }
-  if (!request.requestCode || isBefore(parseISO(request.requestCode.expiresAt as any), new Date())) {
+  if (request.expiresIn === ExpiresIn.never) {
+    return (
+      <span className="flex items-center gap-1 text-gray-600">
+        <ClockCircleOutlined />
+        Não expira
+      </span>
+    )
+  }
+  if (RequestModule.isExpired(request)) {
     return (
       <span className="flex items-center gap-1 font-medium">
         <CloseCircleOutlined className="text-red-700" />
@@ -86,11 +96,11 @@ function RequestStatus({ request }: { request: RequestsResponse[0] }) {
       </span>
     )
   }
+
   return (
     <span className="flex items-center gap-1 text-gray-600">
       <ClockCircleOutlined />
-      Expira em{" "}
-      {formatDistanceToNowStrict(parseISO(request!.requestCode!.expiresAt as any), { locale: ptBR })}
+      Expira em {formatDistanceToNowStrict(RequestModule.expiresAt(request)!, { locale: ptBR })}
     </span>
   )
 }
@@ -112,21 +122,13 @@ function Requests({ requests, selectedId }: { requests: RequestsResponse; select
             <table className="text-gray-900" width="100%">
               <tbody>
                 <tr>
-                  <td className="font-medium w-[30%]">{request.requestCodeRef}</td>
-                  <td>{format(parseISO(request.createdAt as any), `HH:mm'h'`)}</td>
-                  <td className="w-[50%]">
+                  <td className="font-medium w-[30%]">{request.code}</td>
+                  <td>
                     <RequestStatus request={request} />
                   </td>
                 </tr>
               </tbody>
             </table>
-            <div className=" flex items-center justify-between">
-              <span className="text-gray-500">
-                {((request!.requestedInfo as RequestType[]) || [])
-                  .map((requestType) => REQUEST_TYPE_MAP[requestType])
-                  .join(", ")}
-              </span>
-            </div>
           </div>
         </li>
       ))}
@@ -143,49 +145,72 @@ function RequestDetails({ request }: { request: RequestsResponse[0] }) {
     <>
       <div className="mx-auto max-w-5xl px-8">
         <div className="mt-6 min-w-0 flex-1">
-          <h3 className="truncate text-2xl font-bold text-gray-900">Código {request.requestCodeRef}</h3>
+          <h3 className="truncate text-2xl font-bold text-gray-900">Código {request.code}</h3>
         </div>
       </div>
 
-      <table className="w-96 mt-6 px-8">
-        <tbody>
-          {request.amount && (
-            <>
-              <tr>
-                <td className="text-sm font-medium text-gray-500 w-[30%]">Subtotal</td>
-                <td className="mb-1 text-sm text-gray-900 text-right">{intlCurrency(request.amount)}</td>
-              </tr>
-              <tr>
-                <td className="text-sm font-medium text-gray-500 w-[30%]">
-                  Taxa ({(request?.extraFee || 0) / 100}%)
-                </td>
-                <td className="mb-1 text-sm text-gray-900 text-right">{intlCurrency(extraFee(request))}</td>
-              </tr>
-              <tr>
-                <td className="text-sm font-medium text-gray-500 w-[30%]">Total</td>
-                <td className="mb-1 text-sm text-gray-900 text-right">
-                  {intlCurrency(request.amount + extraFee(request))}
-                </td>
-              </tr>
-            </>
-          )}
-          {((request.requestedInfo as RequestType[]) || []).map((requestType) => (
-            <tr key={requestType}>
-              <td className="text-sm font-medium text-gray-500 w-[30%]">{REQUEST_TYPE_MAP[requestType]}</td>
-              <td className="mb-1 text-sm text-gray-900 text-right">
-                <RequestTypeDetail type={requestType} request={request} />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className="mt-6 px-8">
+        <dl className="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
+          <div className="sm:col-span-1">
+            <dt className="text-sm font-medium text-gray-500">Solicitou</dt>
+            <dd className="mt-1 text-sm text-gray-900">
+              {RequestModule.types(request)
+                .map((requestType) => REQUEST_TYPE_MAP[requestType])
+                .join(", ")}
+            </dd>
+          </div>
+
+          <div className="sm:col-span-1">
+            <dt className="text-sm font-medium text-gray-500">Valor</dt>
+            <dd className="mt-1 text-sm text-gray-900">
+              {request.amount ? intlCurrency(request.amount) : "Informado pelo cliente"}
+            </dd>
+          </div>
+          <div className="sm:col-span-1">
+            <dt className="text-sm font-medium text-gray-500">Criado</dt>
+            <dd className="mt-1 text-sm text-gray-900">
+              {formatRelative(RequestModule.ensureDate(request.createdAt), new Date(), { locale: ptBR })}
+              {request.expiresIn !== ExpiresIn.never && (
+                <span> (expira após {EXPIRES_IN_MAP[request.expiresIn]})</span>
+              )}
+            </dd>
+          </div>
+        </dl>
+
+        <div className="text-sm font-medium text-gray-500 mt-8 mb-2">Conclusões</div>
+        <Table
+          dataSource={request.completions}
+          showHeader={false}
+          columns={[
+            {
+              title: "Data",
+              dataIndex: "createdAt",
+              key: "createdAt",
+              width: "30%",
+              render: (date: string) => formatRelative(parseISO(date), new Date(), { locale: ptBR }),
+            },
+            {
+              title: "Dados",
+              dataIndex: "id",
+              key: "id",
+              render: (_id, completion: Completion, _index) => {
+                if (RequestModule.requestsPayment(request.types) && completion.amountReceived) {
+                  return <>Pagamento: {intlCurrency(completion.amountReceived)}</>
+                }
+                return "-"
+              },
+            },
+          ]}
+        />
+      </div>
     </>
   )
 }
 
 function RequestTypeDetail({ type, request }: { type: RequestType; request: RequestsResponse[0] }) {
-  return <>Em breve</>
-  // ensureExhaustive(type)
+  if (type === RequestType.payment) {
+    return
+  }
 }
 
 /**
@@ -203,8 +228,10 @@ function NewRequestModal({ show, setShow }: any) {
   const { trigger, isMutating } = useCreateRequest()
   const router = useRouter()
   const [form] = Form.useForm()
+  const types = Form.useWatch("types", form) || undefined
+  const expiresIn = Form.useWatch("expiresIn", form) as ExpiresIn
 
-  const requestPayment = Form.useWatch("requestPayment", form) || false
+  const expiresInOpts = map(EXPIRES_IN_MAP, (label, value) => ({ label, value }))
   const onFinish = async (values: any) => {
     const request = await trigger(values)
     if (request.quicError) {
@@ -215,7 +242,6 @@ function NewRequestModal({ show, setShow }: any) {
       setShow(false)
     }
   }
-  const expiresInOpts = map(EXPIRES_IN_MAP, (label, value) => ({ label, value }))
 
   return (
     <>
@@ -234,14 +260,14 @@ function NewRequestModal({ show, setShow }: any) {
           onFinish={onFinish}
           layout="vertical"
           requiredMark
-          initialValues={{ requestPayment: true, expiresIn: ExpiresIn.minutes_15 }}
+          initialValues={{ types: [RequestType.payment], expiresIn: ExpiresIn.never }}
           className="flex justify-between gap-8"
         >
           <div className="w-[50%]">
-            <Form.Item valuePropName="checked" name="requestPayment" noStyle>
-              <Checkbox>Pagamento</Checkbox>
-            </Form.Item>
-            <Form.Item name="requestedInfo" noStyle>
+            <Form.Item
+              name="types"
+              rules={[{ type: "array", required: true, message: "selecione uma opção" }]}
+            >
               <Checkbox.Group className="block">
                 {map(REQUEST_TYPE_MAP, (label, value) => (
                   <div key={value}>
@@ -254,41 +280,21 @@ function NewRequestModal({ show, setShow }: any) {
             </Form.Item>
           </div>
           <div className="w-[50%]">
-            {requestPayment && (
-              <Form.Item
-                name="amount"
-                label="Qual valor?"
-                rules={[
-                  {
-                    type: "number",
-                    required: true,
-                    message: `informe um valor ou desmarque a opção de "Pagamento"`,
-                  },
-                  { type: "number", min: MIN_AMOUNT, message: "valor mínimo: R$ 1,00" },
-                  { type: "number", max: MAX_AMOUNT, message: "valor máximo: R$ 1 milhão" },
-                ]}
-                validateTrigger="onBlur"
-              >
-                <InputNumber
-                  className="w-full"
-                  maxLength={9}
-                  addonBefore="R$"
-                  placeholder="49,90"
-                  controls={false}
-                  formatter={(val) => formatCurrency(val as unknown as string)}
-                />
-              </Form.Item>
-            )}
-
             <Form.Item
               name="expiresIn"
               label="Código expira em"
               required
               requiredMark
+              help={
+                RequestModule.requestsPayment(types) &&
+                expiresIn === ExpiresIn.never &&
+                "O cliente digitará o valor a pagar"
+              }
               rules={[{ required: true, message: "campo obrigatório" }]}
             >
               <Select options={expiresInOpts} />
             </Form.Item>
+            {RequestModule.requestsPayment(types) && expiresIn !== ExpiresIn.never && <CurrencyInput />}
           </div>
         </Form>
       </Modal>

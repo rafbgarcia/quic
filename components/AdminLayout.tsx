@@ -9,10 +9,7 @@ import { Fragment, useEffect, useState } from "react"
 import { Avatar } from "./Avatar"
 import { Logo } from "./Logo"
 
-const navigation = [
-  { name: "Códigos avulsos", href: "/admin", icon: QueueListIcon },
-  // { name: "Códigos permanentes", href: "/admin/codes/fixed", icon: ListBulletIcon },
-]
+const navigation = [{ name: "Códigos", href: "/admin", icon: QueueListIcon }]
 
 export default function AdminLayout({ children }: any) {
   const [sidebarOpen, setSidebarOpen] = useState(false)

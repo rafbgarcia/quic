@@ -5,6 +5,7 @@ import { ExpiresIn, RequestType } from "@prisma/client"
  */
 
 export const REQUEST_TYPE_MAP = {
+  payment: "Pagamento",
   fullName: "Nome completo",
   shippingAddress: "Endereço de entrega",
   phoneNumber: "Número de telefone",
@@ -19,6 +20,7 @@ checkExhaustiveMapping(REQUEST_TYPE_MAP, RequestType)
  */
 
 export const EXPIRES_IN_MAP = {
+  [ExpiresIn.never]: "Nunca expira",
   [ExpiresIn.minutes_15]: "15 minutos",
   [ExpiresIn.hours_1]: "1 hora",
   [ExpiresIn.hours_24]: "24 horas",

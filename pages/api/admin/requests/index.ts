@@ -11,8 +11,10 @@ export default ServerlessFunctionHandler({
     const requests = await prisma.request.findMany({
       take: 20,
       where: { businessId: business.id },
-      orderBy: [{ createdAt: "desc" }],
-      include: { requestCode: true, customer: true },
+      orderBy: [{ expiresIn: "desc" }, { createdAt: "desc" }],
+      include: {
+        completions: { orderBy: [{ createdAt: "desc" }] },
+      },
     })
 
     res.json(requests)
