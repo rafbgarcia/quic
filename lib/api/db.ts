@@ -4,7 +4,7 @@
 // Learn more:
 // https://pris.ly/d/help/next-js-best-practices
 
-import { PrismaClient, RequestType } from "@prisma/client"
+import { PrismaClient } from "@prisma/client"
 
 type PrismaType = ReturnType<typeof initPrisma>
 
@@ -19,62 +19,7 @@ export const prisma = global.prismaInstance || initPrisma()
 if (process.env.NODE_ENV !== "production") global.prismaInstance = prisma
 
 function initPrisma() {
-  const prisma = new PrismaClient({
+  return new PrismaClient({
     log: ["query"],
   })
-  const xprisma = prisma.$extends({
-    name: "requestedInfo",
-    result: {
-      request: {
-        requestInfo: {
-          needs: { requestedInfo: true },
-          compute(request) {
-            return () => request.requestedInfo as RequestType[]
-          },
-        },
-      },
-    },
-  })
-  return xprisma
-
-  // return prisma.$extends({
-  //   client: {
-  //     $transaction(callback: any) {
-  //       console.log(">>> $transaction")
-
-  //       return prisma.$transaction(async (tx: any) => {
-  //         console.log(">>> client.$transaction")
-  //         await tx.$exectuteRawUnsafe("SET SESSION inject_retry_errors_enabled=true")
-  //         await tx.$exectuteRawUnsafe("SAVEPOINT cockroach_restart")
-
-  //         for (let retry = 1; retry <= 10; retry++) {
-  //           try {
-  //             const result = await callback(tx)
-  //             await tx.$executeRawUnsafe("RELEASE SAVEPOINT cockroach_restart")
-  //             return result
-  //           } catch (error: any) {
-  //             const msg = (error.message || "").toLowerCase()
-  //             console.log(`>>> quic transaction error (retry ${retry}):`, error)
-
-  //             // @see https://www.cockroachlabs.com/docs/v22.1/advanced-client-side-transaction-retries#how-transaction-retries-work
-  //             // step 4.
-
-  //             if (
-  //               error.code.toString() === "40001" ||
-  //               msg.includes("retry transaction") ||
-  //               msg.includes("restart transaction")
-  //             ) {
-  //               await tx.$executeRawUnsafe("ROLLBACK TO SAVEPOINT cockroach_restart")
-
-  //               await new Promise((resolve) => setTimeout(resolve, retry * 100))
-  //               continue
-  //             } else {
-  //               throw error
-  //             }
-  //           }
-  //         }
-  //       })
-  //     },
-  //   },
-  // })
 }
