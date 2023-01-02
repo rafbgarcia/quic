@@ -21,6 +21,19 @@ type Req = Request & { business: Business }
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
+const getWallet = (result: CanMakePaymentResult | null) => {
+  if (result?.applePay) {
+    return { icon: applePayMark, label: "Apple Pay" }
+  } else if (result?.googlePay) {
+    return { icon: googlePayMark, label: "Google Pay" }
+  }
+}
+
+enum PaymentMethod {
+  pix,
+  card,
+}
+
 export function RequestPayment({ request }: { request: Req }) {
   const [needsAmount, setNeedsAmount] = useState(RequestModule.needsPaymentAmount(request))
   const handleNewPi = (values: any) => {
@@ -112,54 +125,6 @@ function PaymentForm({ request }: { request: Req }) {
       </Elements>
     </>
   )
-}
-
-// const CheckoutForm2 = ({ request, pi }: { request: Req; pi: Stripe.Response<Stripe.PaymentIntent> }) => {
-//   const router = useRouter()
-//   const stripe = useStripe()
-//   const onSubmit = async (e: any) => {
-//     e.preventDefault()
-
-//     const { error, paymentIntent } = await stripe!.confirmPixPayment(pi.client_secret!, {
-//       payment_method: {},
-//     })
-
-//     if (error) {
-//       message.info(error?.message)
-//     } else if (paymentIntent?.status !== "succeeded") {
-//       return
-//     } else {
-//       router.push(encodeURI(`/${request.businessId}/success?payment_intent=${paymentIntent.id}`))
-//     }
-//   }
-
-//   return (
-//     <form className="mb-5" onSubmit={onSubmit}>
-//       <Button
-//         className="flex items-center justify-center gap-1"
-//         htmlType="submit"
-//         size="large"
-//         type="primary"
-//         block
-//         icon={<LockClosedIcon className="w-4" />}
-//       >
-//         Pagar com Pix {intlCurrency(request.amount! + extraFee(request))}
-//       </Button>
-//     </form>
-//   )
-// }
-
-const getWallet = (result: CanMakePaymentResult | null) => {
-  if (result?.applePay) {
-    return { icon: applePayMark, label: "Apple Pay" }
-  } else if (result?.googlePay) {
-    return { icon: googlePayMark, label: "Google Pay" }
-  }
-}
-
-enum PaymentMethod {
-  pix,
-  card,
 }
 
 function PaymentMethodEl({
@@ -254,21 +219,21 @@ const CheckoutForm = ({ request, pi }: { request: Req; pi: Stripe.Response<Strip
       { handleActions: false }
     )
 
-    setWaiting(false)
-
     if (confirmError) {
       ev.complete("fail")
+      setWaiting(false)
     } else {
       ev.complete("success")
       if (paymentIntent.status === "requires_action") {
         const { error } = await stripe.confirmCardPayment(paymentIntent.client_secret!)
         if (error) {
           message.error(error.message)
+          setWaiting(false)
         } else {
-          router.push(encodeURI(`/${request.businessId}/success?payment_intent=${paymentIntent.id}`))
+          router.push(encodeURI(`/${paymentIntent.id}/success`))
         }
       } else {
-        router.push(encodeURI(`/${request.businessId}/success?payment_intent=${paymentIntent.id}`))
+        router.push(encodeURI(`/${paymentIntent.id}/success`))
       }
     }
   })
@@ -281,15 +246,13 @@ const CheckoutForm = ({ request, pi }: { request: Req; pi: Stripe.Response<Strip
       const { error, paymentIntent } = await stripe!.confirmPixPayment(pi.client_secret!, {
         payment_method: {},
       })
-      setWaiting(false)
 
       if (error) {
         message.info(error?.message)
-      } else if (paymentIntent?.status !== "succeeded") {
-        return
-      } else {
-        router.push(encodeURI(`/${request.businessId}/success?payment_intent=${paymentIntent.id}`))
+      } else if (paymentIntent?.status === "succeeded") {
+        router.push(encodeURI(`/${paymentIntent.id}/success`))
       }
+      setWaiting(false)
     } else if (paymentMethod === PaymentMethod.card) {
       paymentRequest.show()
     }
