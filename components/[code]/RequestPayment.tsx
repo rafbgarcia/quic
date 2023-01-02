@@ -126,7 +126,7 @@ const CheckoutForm = ({ request }: { request: Req }) => {
         })
       }
     })
-  }, [stripe, request.amount])
+  }, [request, router, selectedPaymentMethod])
 
   if (!stripe || !paymentRequest) {
     return <Skeleton />
