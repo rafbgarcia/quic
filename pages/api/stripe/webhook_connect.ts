@@ -34,7 +34,7 @@ const eventHandlers: { [key: string]: (prisma: typeof prismaClient, object: any)
     await prisma.business.update({
       where: { id: account.id },
       data: {
-        name: account.business_profile?.name ? account.business_profile?.name : undefined,
+        name: account.business_profile?.name || undefined,
         stripeMeta: account as any,
       },
     })
