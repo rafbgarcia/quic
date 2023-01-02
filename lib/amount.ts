@@ -1,3 +1,5 @@
+import { Request } from "@prisma/client"
+
 export const MIN_AMOUNT = 1_00
 export const MAX_AMOUNT = 25000_00
 const MIN_AMOUNT_MSG = intlCurrency(MIN_AMOUNT)
@@ -17,10 +19,10 @@ export function intlCurrency(amount: number) {
   return Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(amount / 100)
 }
 
-export function extraFee(request: any) {
-  if (!request.extraFee) {
+export function extraFee(request: Request) {
+  if (!request.extraFeePercent) {
     return 0
   }
-  const feeFloat = request.extraFee / 100
-  return Math.ceil((request.amount * feeFloat) / 100)
+  const feeFloat = request.extraFeePercent / 100
+  return Math.ceil((request.amount! * feeFloat) / 100)
 }

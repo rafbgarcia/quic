@@ -73,18 +73,18 @@ export default function Dashboard() {
 }
 
 function RequestStatus({ request }: { request: RequestsResponse[0] }) {
-  if (request.completions.length > 0) {
-    return (
-      <span className="flex items-center gap-1 font-medium">
-        <CheckCircleOutlined className="text-green-700" /> Completo
-      </span>
-    )
-  }
   if (request.expiresIn === ExpiresIn.never) {
     return (
       <span className="flex items-center gap-1 text-gray-600">
         <ClockCircleOutlined />
         Não expira
+      </span>
+    )
+  }
+  if (request.completions.length > 0) {
+    return (
+      <span className="flex items-center gap-1 font-medium">
+        <CheckCircleOutlined className="text-green-700" /> Completo
       </span>
     )
   }
@@ -199,6 +199,11 @@ function RequestDetails({ request }: { request: RequestsResponse[0] }) {
                 }
                 return "-"
               },
+            },
+            {
+              title: "Método",
+              dataIndex: "paymentMethod",
+              key: "paymentMethod",
             },
           ]}
         />

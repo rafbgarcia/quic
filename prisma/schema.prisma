@@ -71,8 +71,9 @@ model Completion {
   request         Request  @relation(fields: [requestId], references: [id])
   requestId       String   @db.VarChar(30)
   createdAt       DateTime @default(now())
-  paymentIntentId String?  @db.VarChar(50)
+  paymentIntentId String?  @unique @db.VarChar(50)
   amountReceived  Int?     @db.UnsignedMediumInt
+  paymentMethod   String?  @db.VarChar(30)
 
   @@index([requestId])
 }

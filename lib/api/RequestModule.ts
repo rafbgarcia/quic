@@ -14,6 +14,11 @@ export const RequestModule = {
   extraFeePercent(request?: Request) {
     return (request?.extraFeePercent || 0) / 100
   },
+  intlExtraFeePercent(extraFeePercent: number) {
+    return Intl.NumberFormat("pt-BR", { style: "percent", minimumFractionDigits: 2 }).format(
+      extraFeePercent / 10000
+    )
+  },
   expiresAt(request: Request) {
     const createdAt = request.createdAt ? RequestModule.ensureDate(request.createdAt) : new Date()
 

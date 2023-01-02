@@ -28,12 +28,21 @@ export default ServerlessFunctionHandler({
 const eventHandlers: { [key: string]: (prisma: typeof prismaClient, object: any) => void } = {
   "payment_intent.succeeded": async (prisma, paymentIntent: Stripe.PaymentIntent) => {
     if (paymentIntent.status === "succeeded") {
+      let paymentMethod
+      if (typeof paymentIntent.payment_method === "string") {
+        const pm = await stripe.paymentMethods.retrieve(paymentIntent.payment_method)
+        paymentMethod = pm.type
+      } else if (paymentIntent.payment_method) {
+        paymentMethod = paymentIntent?.payment_method?.type
+      }
+
       const promises: any = [
         prisma.completion.create({
           data: {
             requestId: paymentIntent.metadata.requestId,
             paymentIntentId: paymentIntent.id,
             amountReceived: paymentIntent.amount_received,
+            paymentMethod,
           },
         }),
       ]

@@ -8,15 +8,6 @@ import { CodeResponse, useRequestCode } from "../../lib/api"
 import { CodeModule } from "../../lib/api/CodeModule"
 import { RequestModule } from "../../lib/api/RequestModule"
 
-const REQUEST_TYPE_HTML: Record<RequestType, any> = {
-  payment: RequestPayment,
-  email: "Em breve",
-  fullName: "Em breve",
-  id: "Em breve",
-  phoneNumber: "Em breve",
-  shippingAddress: "Em breve",
-}
-
 export default function Code() {
   const router = useRouter()
   const id = router.query.code as string
