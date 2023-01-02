@@ -28,6 +28,8 @@ export default ServerlessFunctionHandler({
       currency: "brl",
       application_fee_amount: stripeFee(amount),
       payment_method_types: ["card", "pix"],
+      statement_descriptor: request.business.name,
+      statement_descriptor_suffix: request.business.name,
       transfer_data: {
         destination: request.business.id,
       },
