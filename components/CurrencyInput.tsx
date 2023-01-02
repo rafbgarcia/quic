@@ -16,6 +16,8 @@ export function CurrencyInput({ label }: { label?: string }) {
       validateTrigger="onBlur"
     >
       <InputNumber
+        type="tel"
+        size="large"
         className="w-full"
         maxLength={9}
         addonBefore="R$"

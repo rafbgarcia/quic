@@ -11,6 +11,12 @@ datasource db {
   relationMode = "prisma"
 }
 
+enum PaymentMethod {
+  applePay
+  googlePay
+  pix
+}
+
 enum ExpiresIn {
   minutes_15
   hours_1
@@ -107,6 +113,7 @@ model Customer {
 //
 /////////////////////////////////////////////////////////////
 model unused_table_to_create_enum_types {
-  id          String       @id
-  requestType RequestType?
+  id            String         @id
+  requestType   RequestType?
+  paymentMethod PaymentMethod?
 }

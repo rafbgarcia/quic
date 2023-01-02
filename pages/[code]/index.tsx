@@ -1,6 +1,7 @@
 import { XCircleIcon } from "@heroicons/react/24/outline"
 import { RequestType } from "@prisma/client"
 import { Button, Skeleton } from "antd"
+import { GetServerSideProps } from "next"
 import Head from "next/head"
 import { useRouter } from "next/router"
 import { RequestPayment } from "../../components/[code]/RequestPayment"
@@ -8,9 +9,18 @@ import { CodeResponse, useRequestCode } from "../../lib/api"
 import { CodeModule } from "../../lib/api/CodeModule"
 import { RequestModule } from "../../lib/api/RequestModule"
 
-export default function Code() {
-  const router = useRouter()
-  const id = router.query.code as string
+export const getServerSideProps: GetServerSideProps = async (ctx) => {
+  const id = ctx.params?.code
+  if (!id) {
+    return { notFound: true }
+  }
+
+  return {
+    props: { id },
+  }
+}
+
+export default function Code({ id }: { id: string }) {
   const { data: code, isLoading } = useRequestCode(id)
 
   return (
@@ -18,20 +28,20 @@ export default function Code() {
       <Head>
         <title>Código {id}</title>
       </Head>
-      {isLoading ? <Skeleton className="m-6" /> : <Content code={code!} />}
+      <div className="p-4">{isLoading ? <Skeleton /> : <Content code={code} />}</div>
     </>
   )
 }
 
-function Content({ code }: { code: CodeResponse }) {
+function Content({ code }: { code: CodeResponse | undefined }) {
   if (!code || CodeModule.isExpired(code)) {
     return <InvalidCode />
   }
 
   return (
-    <div className="p-6">
-      <h1 className="text-xl">Código {code.id}</h1>
-      <h3 className="text-md text-gray-500 font-medium mb-6">{code.request.business.name}</h3>
+    <>
+      <h1 className="text-lg mb-1 truncate">{code.request.business.name}</h1>
+      <h3 className="text-md text-gray-500 font-medium mb-6">{code.id}</h3>
 
       {RequestModule.types(code.request).map((type) => {
         if (type === RequestType.payment) {
@@ -40,7 +50,7 @@ function Content({ code }: { code: CodeResponse }) {
           return <div key={type}></div>
         }
       })}
-    </div>
+    </>
   )
 }
 

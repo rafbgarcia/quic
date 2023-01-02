@@ -14,7 +14,8 @@ export const RequestModule = {
   extraFeePercent(request?: Request) {
     return (request?.extraFeePercent || 0) / 100
   },
-  intlExtraFeePercent(extraFeePercent: number) {
+  intlExtraFeePercent(extraFeePercent: number | null) {
+    extraFeePercent ||= 0
     return Intl.NumberFormat("pt-BR", { style: "percent", minimumFractionDigits: 2 }).format(
       extraFeePercent / 10000
     )

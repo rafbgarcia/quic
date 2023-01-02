@@ -6,7 +6,7 @@ import {
 } from "@ant-design/icons"
 import { SquaresPlusIcon } from "@heroicons/react/24/outline"
 import { Completion, ExpiresIn, RequestType } from "@prisma/client"
-import { Button, Checkbox, Form, message, Modal, Select, Spin, Table } from "antd"
+import { Button, Checkbox, Form, message, Modal, QRCode, Select, Spin, Table } from "antd"
 import classNames from "classnames"
 import { formatDistanceToNowStrict, formatRelative, parseISO } from "date-fns"
 import ptBR from "date-fns/locale/pt-BR"
@@ -18,6 +18,7 @@ import AdminLayout from "../../components/AdminLayout"
 import { CurrencyInput } from "../../components/CurrencyInput"
 import { intlCurrency } from "../../lib/amount"
 import { RequestsResponse, useCreateRequest, useRequests } from "../../lib/api"
+import { getDomain } from "../../lib/api/req"
 import { RequestModule } from "../../lib/api/RequestModule"
 import { EXPIRES_IN_MAP, REQUEST_TYPE_MAP } from "../../lib/enums"
 
@@ -145,7 +146,7 @@ function RequestDetails({ request }: { request: RequestsResponse[0] }) {
     <>
       <div className="mx-auto max-w-5xl px-8">
         <div className="mt-6 min-w-0 flex-1">
-          <h3 className="truncate text-2xl font-bold text-gray-900">Código {request.code}</h3>
+          <h3 className="truncate text-xl font-bold text-gray-900">Código {request.code}</h3>
         </div>
       </div>
 
@@ -175,7 +176,21 @@ function RequestDetails({ request }: { request: RequestsResponse[0] }) {
               )}
             </dd>
           </div>
+          <div className="sm:col-span-1">
+            <dt className="text-sm font-medium text-gray-500">Taxa pgto. com cartão</dt>
+            <dd className="mt-1 text-sm text-gray-900">
+              {RequestModule.intlExtraFeePercent(request.extraFeePercent)}
+            </dd>
+          </div>
+          <div className="sm:col-span-2">
+            <dt className="text-sm font-medium text-gray-500">QRCode</dt>
+            <dd className="mt-1 text-sm text-gray-900">
+              <QRCode value={`${getDomain()}/${request.code}`} size={150} />
+            </dd>
+          </div>
         </dl>
+
+        <div className="my-4"></div>
 
         <div className="text-sm font-medium text-gray-500 mt-8 mb-2">Conclusões</div>
         <Table

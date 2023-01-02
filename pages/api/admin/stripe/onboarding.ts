@@ -28,7 +28,10 @@ export default ServerlessFunctionHandler({
 
     const account = await stripe.accounts.retrieve(business.id)
     await prisma.business.update({
-      data: { stripeMeta: account as any, name: account.business_profile?.name || undefined },
+      data: {
+        stripeMeta: account as any,
+        name: account.business_profile?.name || account.settings?.dashboard.display_name || undefined,
+      },
       where: { id: business.id },
     })
 

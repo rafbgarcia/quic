@@ -1,5 +1,4 @@
 import { CheckCircleIcon } from "@heroicons/react/24/outline"
-import { Typography } from "antd"
 import { GetServerSideProps } from "next"
 import Head from "next/head"
 import Stripe from "stripe"
@@ -25,15 +24,16 @@ export default function RequestSuccess({ pi }: { pi: Stripe.Response<Stripe.Paym
       <Head>
         <title>Solicitação concluída</title>
       </Head>
-      <div className="flex items-center gap-2 flex-col mt-10 max-w-md mx-auto text-center">
-        <CheckCircleIcon className="w-20 text-green-800" />
-        <h1 className="text-2xl">Tudo certo!</h1>
-        <div className="mb-4">
-          Pagamento de {intlCurrency(pi.amount_received)} para {pi.metadata.businessName} concluído.
+      <main className="p-4">
+        <h1 className="text-lg mb-1 truncate">{pi.metadata.businessName}</h1>
+        <h3 className="text-md text-gray-500 font-medium mb-6">{pi.metadata.code}</h3>
+        <div className="flex items-center gap-2 flex-col mt-20 max-w-md mx-auto text-center">
+          <CheckCircleIcon className="w-20 text-green-800" />
+          <h1 className="text-2xl">Tudo certo!</h1>
+          <p>Recebemos seu pagamento de {intlCurrency(pi.amount_received)}.</p>
+          <p>Agradecemos a preferência.</p>
         </div>
-
-        <Typography.Link href="/">Quer digitar outro código?</Typography.Link>
-      </div>
+      </main>
     </>
   )
 }
