@@ -4,7 +4,7 @@ import { GetServerSideProps } from "next"
 import Head from "next/head"
 import Stripe from "stripe"
 import { intlCurrency } from "../../lib/amount"
-import { stripeBusiness } from "../../lib/api/stripe"
+import { stripe } from "../../lib/api/stripe"
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const paymentIntentId = ctx.query.payment_intent as string | undefined
@@ -12,9 +12,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     return { notFound: true }
   }
 
-  const pi = await stripeBusiness(ctx.params!.code as string).paymentIntents.retrieve(paymentIntentId, {
-    expand: ["latest_charge"],
-  })
+  const pi = await stripe.paymentIntents.retrieve(paymentIntentId, { expand: ["latest_charge"] })
 
   return {
     props: { pi },

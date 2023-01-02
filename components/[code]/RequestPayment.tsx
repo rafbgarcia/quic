@@ -11,7 +11,6 @@ import Stripe from "stripe"
 import { extraFee, intlCurrency } from "../../lib/amount"
 import { post } from "../../lib/api"
 import { RequestModule } from "../../lib/api/RequestModule"
-import { STRIPE_API_VERSION } from "../../lib/api/stripe"
 import { CurrencyInput } from "../CurrencyInput"
 
 import applePayMark from "../../images/apple_pay_mark.svg"
@@ -19,6 +18,8 @@ import googlePayMark from "../../images/google_pay_mark.svg"
 import pixPayMark from "../../images/pix_mark.svg"
 
 type Req = Request & { business: Business }
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
 export function RequestPayment({ request }: { request: Req }) {
   const [needsAmount, setNeedsAmount] = useState(RequestModule.needsPaymentAmount(request))
@@ -88,10 +89,6 @@ function AmountDetails({ request }: { request: Req }) {
 
 function PaymentForm({ request }: { request: Req }) {
   const [pi, setPi] = useState<Stripe.Response<Stripe.PaymentIntent> | null>(null)
-  const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!, {
-    apiVersion: STRIPE_API_VERSION,
-    stripeAccount: request.businessId,
-  })
 
   useEffect(() => {
     post("/api/requests/create_pi", {
@@ -100,7 +97,7 @@ function PaymentForm({ request }: { request: Req }) {
     }).then(setPi)
   }, [request.id, request.amount, setPi])
 
-  if (!pi) return <Skeleton className="m-6" />
+  if (!pi) return <Skeleton />
 
   return (
     <>

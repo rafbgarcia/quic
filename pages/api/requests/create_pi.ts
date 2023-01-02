@@ -1,7 +1,7 @@
 import { ExpiresIn } from "@prisma/client"
 import { prisma } from "../../../lib/api/db"
 import { ServerlessFunctionHandler } from "../../../lib/api/serverlessHandler"
-import { stripeBusiness } from "../../../lib/api/stripe"
+import { stripe } from "../../../lib/api/stripe"
 
 export default ServerlessFunctionHandler({
   allowedMethods: ["POST"],
@@ -23,11 +23,14 @@ export default ServerlessFunctionHandler({
       return res.status(404).json({ quicError: "Not found" })
     }
 
-    const pi = await stripeBusiness(request.business.id).paymentIntents.create({
+    const pi = await stripe.paymentIntents.create({
       amount: amount + extraFee(request.extraFeePercent, amount),
       currency: "brl",
-      application_fee_amount: quicFee(amount),
+      application_fee_amount: stripeFee(amount),
       payment_method_types: ["card", "pix"],
+      transfer_data: {
+        destination: request.business.id,
+      },
       metadata: {
         requestId: request.id,
         code: request.code,
@@ -45,7 +48,7 @@ function quicFee(amount: number) {
 }
 
 function stripeFee(amount: number) {
-  return Math.ceil(amount * (3.99 / 100)) + 39
+  return Math.ceil(amount * (4 / 100)) + 40
 }
 
 function extraFee(extraFeePercent: number | null, amount: number) {
