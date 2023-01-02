@@ -53,7 +53,7 @@ function InvalidCode() {
       <XCircleIcon className="w-20 text-red-800" />
       <h1 className="text-2xl">Código inválido</h1>
       <p className="mb-10">O código {id} não existe ou já expirou.</p>
-      <Button href="/code" type="primary">
+      <Button href="/" type="primary">
         Digitar outro código
       </Button>
     </div>

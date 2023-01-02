@@ -5,7 +5,6 @@ import { Magic } from "magic-sdk"
 import Head from "next/head"
 import { useRouter } from "next/router"
 import { useState } from "react"
-import { Logo } from "../components/Logo"
 
 export default function Login() {
   const [currentTab, setCurrentTab] = useState(0)
@@ -27,7 +26,7 @@ export default function Login() {
 
       <div className="flex min-h-full flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <Logo className=" mx-auto" />
+          {/* <Logo className=" mx-auto" /> */}
           <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
             Acesse sua conta
           </h2>

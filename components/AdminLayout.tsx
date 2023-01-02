@@ -7,7 +7,6 @@ import Link from "next/link"
 import { useRouter } from "next/router"
 import { Fragment, useEffect, useState } from "react"
 import { Avatar } from "./Avatar"
-import { Logo } from "./Logo"
 
 const navigation = [{ name: "Códigos", href: "/admin", icon: QueueListIcon }]
 
@@ -100,9 +99,7 @@ export default function AdminLayout({ children }: any) {
           <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
             <div className="lg:hidden">
               <div className="flex items-center justify-between border-b border-gray-200 bg-gray-50 px-4 py-1.5">
-                <div>
-                  <Logo />
-                </div>
+                <div>{/* <Logo /> */}</div>
                 <div>
                   <button
                     type="button"
@@ -127,9 +124,7 @@ function Sidebar() {
   const router = useRouter()
   return (
     <>
-      <div className="flex flex-shrink-0 items-center px-4">
-        <Logo />
-      </div>
+      <div className="flex flex-shrink-0 items-center px-4">{/* <Logo /> */}</div>
 
       <nav aria-label="Sidebar" className="mt-5">
         <div className="space-y-1 px-2">

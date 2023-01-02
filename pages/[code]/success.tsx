@@ -48,7 +48,7 @@ export default function RequestSuccess({ pi }: { pi: Stripe.Response<Stripe.Paym
           )}
         </div>
 
-        <Typography.Link href="/code">Quer digitar outro código?</Typography.Link>
+        <Typography.Link href="/">Quer digitar outro código?</Typography.Link>
       </div>
     </>
   )

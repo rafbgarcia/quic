@@ -326,7 +326,7 @@ const CheckoutForm = ({ request, pi }: { request: Req; pi: Stripe.Response<Strip
       </Button>
 
       <div className="mt-5 text-center">
-        <Typography.Link href="/code">Cancelar</Typography.Link>
+        <Typography.Link href="/">Cancelar</Typography.Link>
       </div>
     </>
   )
