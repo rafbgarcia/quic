@@ -1,4 +1,4 @@
-import { CheckOutlined, InfoCircleOutlined } from "@ant-design/icons"
+import { CheckOutlined, CreditCardFilled, InfoCircleOutlined } from "@ant-design/icons"
 import { Business, PaymentMethod, Request } from "@prisma/client"
 import { CanMakePaymentResult, loadStripe, PaymentRequest, Stripe } from "@stripe/stripe-js"
 import { Button, Form, message, Popover, Skeleton } from "antd"
@@ -21,10 +21,11 @@ type Req = Request & { business: Business }
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
-const paymentMethodMap = {
+const paymentMethodMap: Record<PaymentMethod, { icon: any; label: string }> = {
   [PaymentMethod.applePay]: { icon: applePayMark, label: "Apple Pay" },
   [PaymentMethod.googlePay]: { icon: googlePayMark, label: "Google Pay" },
   [PaymentMethod.pix]: { icon: pixMark, label: "Pix" },
+  [PaymentMethod.card]: { icon: CreditCardFilled, label: "Cartão de crédito" },
 }
 
 export function RequestPayment({ request }: { request: Req }) {
