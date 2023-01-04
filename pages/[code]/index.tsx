@@ -1,7 +1,6 @@
 import { XCircleIcon } from "@heroicons/react/24/outline"
 import { RequestType } from "@prisma/client"
 import { Button, Skeleton } from "antd"
-import { GetServerSideProps } from "next"
 import Head from "next/head"
 import { useRouter } from "next/router"
 import { RequestPayment } from "../../components/[code]/RequestPayment"
@@ -9,18 +8,16 @@ import { CodeResponse, useRequestCode } from "../../lib/api"
 import { CodeModule } from "../../lib/api/CodeModule"
 import { RequestModule } from "../../lib/api/RequestModule"
 
-export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const id = ctx.params?.code
-  if (!id) {
-    return { notFound: true }
-  }
+export default function Code() {
+  const router = useRouter()
+  const id = router.query.code as string | undefined
 
-  return {
-    props: { id },
-  }
+  if (!id) return <Skeleton className="m-4" />
+
+  return <LoadedContent id={id} />
 }
 
-export default function Code({ id }: { id: string }) {
+function LoadedContent({ id }: { id: string }) {
   const { data: code, isLoading } = useRequestCode(id)
 
   return (

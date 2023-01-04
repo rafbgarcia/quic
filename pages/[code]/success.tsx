@@ -1,24 +1,18 @@
 import { CheckCircleIcon } from "@heroicons/react/24/outline"
-import { GetServerSideProps } from "next"
+import { Skeleton } from "antd"
 import Head from "next/head"
-import Stripe from "stripe"
+import { useRouter } from "next/router"
 import { intlCurrency } from "../../lib/amount"
-import { stripe } from "../../lib/api/stripe"
+import { usePi } from "../../lib/api"
 
-export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const paymentIntentId = ctx.params?.code as string | undefined
-  if (!paymentIntentId) {
-    return { notFound: true }
-  }
+export default function RequestSuccess() {
+  const router = useRouter()
+  const id = router.query?.code as string | undefined
+  const { data: pi } = usePi(id)
 
-  const pi = await stripe.paymentIntents.retrieve(paymentIntentId)
+  if (!pi) return <Skeleton className="m-4" />
+  if ((pi as any).quicError) return <>Pagamento inválido</>
 
-  return {
-    props: { pi },
-  }
-}
-
-export default function RequestSuccess({ pi }: { pi: Stripe.Response<Stripe.PaymentIntent> }) {
   return (
     <>
       <Head>

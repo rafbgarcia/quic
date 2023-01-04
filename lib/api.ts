@@ -1,5 +1,6 @@
 import { Business, Code, Completion, Prisma, Request } from "@prisma/client"
 import { message } from "antd"
+import Stripe from "stripe"
 import useSWRImmutable from "swr/immutable"
 import useSWRMutation from "swr/mutation"
 
@@ -36,6 +37,16 @@ export type CodeResponse =
 
 export function useRequestCode(id: string) {
   return useSWRImmutable<CodeResponse>(`/api/${id}`, get)
+}
+
+/**
+ * PaymentIntent
+ */
+
+export type PiResponse = Stripe.Response<Stripe.PaymentIntent>
+
+export function usePi(id: string | undefined) {
+  return useSWRImmutable<PiResponse>(`/api/stripe/pi?id=${id}`, get)
 }
 
 /**
