@@ -15,6 +15,7 @@ enum PaymentMethod {
   applePay
   googlePay
   pix
+  card
 }
 
 enum ExpiresIn {

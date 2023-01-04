@@ -43,12 +43,11 @@ export function RequestPayment({ request }: { request: Req }) {
 function PaymentMethodEl({
   paymentMethod,
   selected,
-
   onSelect,
 }: {
   paymentMethod: PaymentMethod
   selected: boolean
-  onSelect: any
+  onSelect: (p: PaymentMethod) => void
 }) {
   const map = paymentMethodMap[paymentMethod]
   return (
@@ -99,7 +98,7 @@ const CheckoutForm = ({ request }: { request: Req }) => {
           const pi = (await post("/api/requests/create_pi", {
             id: request.id,
             amount: request.amount,
-            paymentMethod: selectedPaymentMethod,
+            paymentMethod: PaymentMethod.card,
           })) as StripeServer.Response<StripeServer.PaymentIntent>
 
           const { paymentIntent, error: confirmError } = await stripe.confirmCardPayment(
@@ -126,7 +125,7 @@ const CheckoutForm = ({ request }: { request: Req }) => {
         })
       }
     })
-  }, [request, router, selectedPaymentMethod])
+  }, [request, router])
 
   if (!stripe || !paymentRequest) {
     return <Skeleton />
